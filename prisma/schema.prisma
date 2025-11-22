@@ -188,6 +188,7 @@ model Tenant {
   billingCustomers BillingCustomer[]
   paymentRecords PaymentRecord[]
   accountingConfig TenantAccountingConfig?
+  emailTemplates EmailTemplate[]
 }
 
 model TenantTheme {
@@ -843,4 +844,18 @@ model TenantAccountingConfig {
   expiresAt    DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+model EmailTemplate {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  key       String   // e.g., 'welcome_client', 'contract_sent', 'milestone_due'
+  name      String
+  subject   String
+  htmlBody  String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, key])
 }
