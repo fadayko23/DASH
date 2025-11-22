@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { FaRobot } from 'react-icons/fa'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -13,11 +14,14 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    
+    await performLogin(email, password)
+  }
+
+  const performLogin = async (u: string, p: string) => {
     try {
       const result = await signIn('credentials', {
-        email,
-        password,
+        email: u,
+        password: p,
         redirect: false,
       })
 
@@ -31,6 +35,17 @@ export default function LoginPage() {
         console.error(err)
       setError('An error occurred')
     }
+  }
+
+  const handleDemoLogin = async () => {
+      try {
+          const res = await fetch('/api/auth/demo-login', { method: 'POST' })
+          if (!res.ok) throw new Error('Demo mode unavailable')
+          const creds = await res.json()
+          await performLogin(creds.email, creds.password)
+      } catch (err) {
+          setError('Demo login failed')
+      }
   }
 
   return (
@@ -76,12 +91,21 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div>
+          <div className="space-y-3">
             <button
               type="submit"
               className="group relative flex w-full justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             >
               Sign in
+            </button>
+            
+            {/* Demo Login Button - Conditionally rendered via CSS or JS based on env isn't strictly possible client-side securely without exposing, but we can try fetch or just always show if configured */}
+            <button
+                type="button"
+                onClick={handleDemoLogin}
+                className="group relative flex w-full justify-center items-center gap-2 rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2"
+            >
+                <FaRobot /> Login as Demo User
             </button>
           </div>
         </form>
