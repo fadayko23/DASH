@@ -10,11 +10,60 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  owner
+  designer
+  assistant
+  admin
+  client
+}
+
 model User {
-  id             String   @id @default(cuid())
+  id             String       @id @default(cuid())
   name           String?
-  email          String   @unique
+  email          String       @unique
   hashedPassword String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  tenants        UserTenant[]
+}
+
+model Tenant {
+  id        String        @id @default(cuid())
+  name      String
+  slug      String        @unique
+  logoUrl   String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  theme     TenantTheme?
+  users     UserTenant[]
+}
+
+model TenantTheme {
+  id             String   @id @default(cuid())
+  tenantId       String   @unique
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  primaryColor   String   @default("#3b82f6")
+  secondaryColor String   @default("#f1f5f9")
+  accentColor    String   @default("#f1f5f9")
+  bgColor        String   @default("#ffffff")
+  textColor      String   @default("#171717")
+  fontFamily     String   @default("sans-serif")
+  borderRadius   String   @default("0.5rem")
+  shadowPreset   String   @default("sm")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+model UserTenant {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  role      UserRole @default(assistant)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, tenantId])
 }

@@ -43,14 +43,17 @@ All third-party integrations are tenant-level via OAuth (NOT per-user):
 4.  **Database Setup:**
     Run the migrations to set up the database schema:
     ```bash
-    npx prisma migrate dev --name init
+    npx prisma migrate dev --name phase1_multitenant
     ```
     
-    (Optional) Seed the database with a test user:
+    (Optional) Seed the database with a test user and tenant:
     ```bash
     npx prisma db seed
     ```
-    This creates a user `test@example.com` with password `password123`.
+    This creates:
+    - User: `test@example.com` / `password123`
+    - Tenant: `Demo Studio` (slug: `demo`)
+    - Links the user as 'owner' of the tenant.
 
 5.  **Run the development server:**
     ```bash
@@ -61,3 +64,12 @@ All third-party integrations are tenant-level via OAuth (NOT per-user):
 
 This app is a PWA. In production (`npm run build`), it will generate a service worker.
 To test PWA in development, ensure `next.config.ts` has `disable: false` (currently set to disable in dev).
+
+## Multi-Tenancy
+
+The app uses a sub-domain based multi-tenancy strategy, falling back to a header `x-tenant-slug` for development.
+
+- **Development**:
+  - You can use `localhost:3000`.
+  - To simulate a tenant, you can add `x-tenant-slug: demo` header (e.g., using a browser extension) OR accessing via `demo.localhost:3000` (requires hosts file config).
+  - If no tenant is found, some features might be restricted or default to a landing page state.

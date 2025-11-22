@@ -1,14 +1,21 @@
 import React from 'react'
 import Link from 'next/link'
 import { signOut } from "@/auth"
+import { getCurrentTenant } from "@/lib/tenant"
+import { ThemeProvider } from "@/components/theme-provider"
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const tenant = await getCurrentTenant()
+
   return (
     <div className="flex h-screen bg-background text-foreground">
+        {tenant?.theme && <ThemeProvider theme={tenant.theme} />}
         {/* Sidebar */}
         <aside className="w-64 border-r border-border bg-card hidden md:block">
             <div className="p-6">
-                <h1 className="text-2xl font-bold text-primary">DASH</h1>
+                <h1 className="text-2xl font-bold text-primary">
+                    {tenant?.name || 'DASH'}
+                </h1>
             </div>
             <nav className="mt-6 px-4 space-y-2">
                 {['Dashboard', 'Clients', 'Projects', 'Inventory', 'Tasks', 'Settings'].map((item) => (

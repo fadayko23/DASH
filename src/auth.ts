@@ -41,4 +41,43 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   session: {
     strategy: "jwt",
   },
+  callbacks: {
+    async jwt({ token, user, trigger, session }) {
+      if (user) {
+        token.id = user.id
+        // Fetch tenants for the user
+        const userTenants = await prisma.userTenant.findMany({
+            where: { userId: user.id },
+            include: { tenant: true }
+        })
+        
+        token.tenants = userTenants.map(ut => ({
+            tenantId: ut.tenantId,
+            name: ut.tenant.name,
+            slug: ut.tenant.slug,
+            role: ut.role
+        }))
+
+        // Default to first tenant if available
+        if (!token.tenantId && token.tenants && (token.tenants as any[]).length > 0) {
+            token.tenantId = (token.tenants as any[])[0].tenantId
+        }
+      }
+
+      // Handle session update (e.g. switching tenant)
+      if (trigger === "update" && session?.tenantId) {
+          token.tenantId = session.tenantId
+      }
+
+      return token
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string
+        session.user.tenantId = token.tenantId as string | null | undefined
+        session.user.tenants = (token.tenants as { tenantId: string; name: string; slug: string; role: string }[]) || []
+      }
+      return session
+    },
+  },
 })
