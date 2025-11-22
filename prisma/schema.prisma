@@ -42,6 +42,18 @@ enum OverrideAvailability {
   preferred
 }
 
+enum ScrapeMode {
+  single
+  list
+}
+
+enum ScrapeStatus {
+  pending
+  running
+  success
+  failed
+}
+
 model User {
   id             String       @id @default(cuid())
   name           String?
@@ -63,6 +75,7 @@ model Tenant {
   users     UserTenant[]
   products  Product[] // Tenant-owned products
   overrides TenantProductOverride[]
+  scrapeJobs ScrapeJob[]
 }
 
 model TenantTheme {
@@ -142,6 +155,7 @@ model Product {
   variants      ProductVariant[]
   media         ProductMedia[]
   overrides     TenantProductOverride[]
+  health        ProductUrlHealth?
 }
 
 model ProductVariant {
@@ -190,4 +204,26 @@ model TenantProductOverride {
   updatedAt         DateTime             @updatedAt
 
   @@unique([tenantId, productId, variantId])
+}
+
+model ScrapeJob {
+  id            String       @id @default(cuid())
+  tenantId      String
+  tenant        Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  url           String
+  mode          ScrapeMode
+  status        ScrapeStatus @default(pending)
+  resultSummary String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model ProductUrlHealth {
+  id             String   @id @default(cuid())
+  productId      String   @unique
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  lastCheckedAt  DateTime @default(now())
+  lastStatusCode Int?
+  isBroken       Boolean  @default(false)
+  notes          String?
 }

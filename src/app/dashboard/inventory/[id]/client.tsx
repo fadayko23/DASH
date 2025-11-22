@@ -19,6 +19,8 @@ type ProductDetail = Product & {
     description?: string | null;
 }
 
+import { UrlHealthWidget } from '@/components/url-health-widget'
+
 export default function ProductDetailClient({ product }: { product: ProductDetail }) {
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(false)
@@ -81,9 +83,14 @@ export default function ProductDetailClient({ product }: { product: ProductDetai
                                 <dt className="text-muted-foreground">Base SKU</dt>
                                 <dd>{product.baseSku || '-'}</dd>
                             </div>
-                             <div>
+                            <div>
                                 <dt className="text-muted-foreground">Source URL</dt>
-                                <dd className="truncate">{product.urlSource || '-'}</dd>
+                                <dd className="truncate flex items-center gap-2">
+                                    <a href={product.urlSource || '#'} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                                        {product.urlSource || '-'}
+                                    </a>
+                                    {product.urlSource && <UrlHealthWidget productId={product.id} />}
+                                </dd>
                             </div>
                              <div>
                                 <dt className="text-muted-foreground">Description</dt>

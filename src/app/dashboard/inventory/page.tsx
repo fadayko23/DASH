@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import Link from 'next/link'
+import { AddProductButton } from '@/components/add-product-button'
 
 export default function InventoryPage() {
   const [search, setSearch] = useState('')
@@ -24,13 +25,16 @@ export default function InventoryPage() {
     <div className="space-y-6">
         <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold tracking-tight">Inventory</h1>
-            <input 
-                type="text" 
-                placeholder="Search products..." 
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring w-64"
-            />
+            <div className="flex gap-4 items-center">
+                <input 
+                    type="text" 
+                    placeholder="Search products..." 
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring w-64"
+                />
+                <AddProductButton />
+            </div>
         </div>
 
         <div className="rounded-md border">
