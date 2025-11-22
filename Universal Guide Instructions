@@ -1,1 +1,44 @@
+# Global Assumptions (updated)
 
+(You don’t have to paste this every time, but this is the underlying contract Cursor should honor.)
+
+Framework: Next.js 14+ (App Router) + React + TypeScript
+
+Backend: Next.js API Routes (monolith)
+
+DB: PostgreSQL via Prisma
+
+Auth: NextAuth (Auth.js) with credentials provider
+
+Styling: Tailwind CSS + CSS variables (tenant theming)
+
+State: React Query / TanStack Query
+
+PWA: Installable, basic offline support
+
+AI: OpenAI (or compatible) via OPENAI_API_KEY
+
+
+All third-party integrations are tenant-level via OAuth (NOT per-user):
+
+One Google OAuth connection per tenant, reused for:
+
+Google Calendar API (scheduling)
+
+Gmail API (sending/reading mail from a shared studio account like design@brand.com)
+
+
+One Stripe OAuth connection per tenant (Stripe Connect Standard or direct OAuth)
+
+One QuickBooks Online OAuth connection per tenant
+
+Cursor must never assume user-level tokens for these services.
+
+
+You provide only:
+
+DATABASE_URL (and create the DB)
+
+OAuth client IDs/secrets and configure redirect URIs
+
+Stripe/Google/QBO/Gmail credentials in .env ....then let me know when you are ready for phase 0 of the build instructions
