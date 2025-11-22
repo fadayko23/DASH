@@ -59,7 +59,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }))
 
         // Default to first tenant if available
-        if (!token.tenantId && token.tenants && (token.tenants as any[]).length > 0) {
+        if (!token.tenantId && token.tenants && Array.isArray(token.tenants) && token.tenants.length > 0) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             token.tenantId = (token.tenants as any[])[0].tenantId
         }
       }
