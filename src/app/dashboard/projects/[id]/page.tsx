@@ -5,6 +5,8 @@ import SpacesList from "./spaces-list"
 import ProjectTracker from "./tracker"
 import ScheduleMeeting from "./scheduler"
 import Link from "next/link"
+import ProjectTasks from "./tasks"
+import ProjectMilestones from "./milestones"
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -120,6 +122,9 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
             {/* Sidebar / Meta */}
             <div className="space-y-6">
+                <ProjectTasks projectId={id} />
+                <ProjectMilestones projectId={id} />
+
                 <div className="p-6 border rounded-lg bg-card">
                     <h3 className="font-semibold mb-4">Project Info</h3>
                     <dl className="space-y-2 text-sm">

@@ -9,8 +9,10 @@ import { ProjectProduct, Product, Vendor, ProductVariant, ProductMedia } from '@
 type SpecWithDetails = ProjectProduct & {
     product: Product & { vendor: Vendor | null; media: ProductMedia[] };
     variant: ProductVariant | null;
+    tagConflict?: boolean; // Ensure this is recognized if not in ProjectProduct (it is)
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function SpaceSpecsClient({ projectId, spaceId, templates, initialSpecs }: { projectId: string, spaceId: string, templates: any[], initialSpecs: SpecWithDetails[] }) {
   const [specs, setSpecs] = useState(initialSpecs)
   const [activeElementKey, setActiveElementKey] = useState<string | null>(null)
@@ -42,7 +44,8 @@ export default function SpaceSpecsClient({ projectId, spaceId, templates, initia
               elementLabel: template?.label || activeElementKey,
               projectTag: null // Initially null
           })
-      }).then(res => res.json()).then(newSpec => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      }).then(res => res.json()).then((newSpec: any) => {
           setSpecs([...specs, newSpec])
           setIsPickerOpen(false)
       })
@@ -53,7 +56,8 @@ export default function SpaceSpecsClient({ projectId, spaceId, templates, initia
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ projectTag: tag })
-      }).then(res => res.json()).then(updatedSpec => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      }).then(res => res.json()).then((updatedSpec: any) => {
           setSpecs(specs.map(s => s.id === specId ? updatedSpec : s))
       })
   }
