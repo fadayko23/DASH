@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { signOut } from "@/auth"
 import { getCurrentTenant } from "@/lib/tenant"
 import { ThemeProvider } from "@/components/theme-provider"
+import WalkthroughOverlay from '@/components/WalkthroughOverlay'
+import { FaQuestionCircle } from 'react-icons/fa'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const tenant = await getCurrentTenant()
@@ -10,24 +12,32 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div className="flex h-screen bg-background text-foreground">
         {tenant?.theme && <ThemeProvider theme={tenant.theme} />}
+        <WalkthroughOverlay />
         {/* Sidebar */}
-        <aside className="w-64 border-r border-border bg-card hidden md:block">
-            <div className="p-6">
-                <h1 className="text-2xl font-bold text-primary">
-                    {tenant?.name || 'DASH'}
-                </h1>
+        <aside className="w-64 border-r border-border bg-card hidden md:block flex flex-col justify-between">
+            <div>
+                <div className="p-6">
+                    <h1 className="text-2xl font-bold text-primary">
+                        {tenant?.name || 'DASH'}
+                    </h1>
+                </div>
+                <nav className="mt-6 px-4 space-y-2">
+                    {['Dashboard', 'Clients', 'Projects', 'Inventory', 'Tasks', 'Settings'].map((item) => (
+                        <Link
+                            key={item}
+                            href={`/dashboard${item === 'Dashboard' ? '' : '/' + item.toLowerCase()}`}
+                            className="block px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-md transition-colors"
+                        >
+                            {item}
+                        </Link>
+                    ))}
+                </nav>
             </div>
-            <nav className="mt-6 px-4 space-y-2">
-                {['Dashboard', 'Clients', 'Projects', 'Inventory', 'Tasks', 'Settings'].map((item) => (
-                    <Link
-                        key={item}
-                        href={`/dashboard${item === 'Dashboard' ? '' : '/' + item.toLowerCase()}`}
-                        className="block px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-md transition-colors"
-                    >
-                        {item}
-                    </Link>
-                ))}
-            </nav>
+            <div className="p-4">
+                <Link href="/dashboard/help" className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-md transition-colors">
+                    <FaQuestionCircle /> Help Center
+                </Link>
+            </div>
         </aside>
 
         {/* Main Content */}
