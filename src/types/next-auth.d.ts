@@ -6,11 +6,13 @@ declare module "next-auth" {
       id: string
       tenantId?: string | null
       tenants: { tenantId: string; name: string; slug: string; role: string }[]
+      clientId?: string | null
     } & DefaultSession["user"]
   }
 
   interface User {
     id: string
+    clientId?: string | null
     // Add other properties if needed from your Prisma User model
   }
 }
@@ -20,5 +22,6 @@ declare module "next-auth/jwt" {
     id: string
     tenantId?: string | null
     tenants: { tenantId: string; name: string; slug: string; role: string }[]
+    clientId?: string | null
   }
 }

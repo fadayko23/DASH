@@ -135,6 +135,8 @@ model Tenant {
   spaceElementTemplates SpaceElementTemplate[]
   projectMessages ProjectMessage[]
   voiceMessages VoiceMessage[]
+  inspirationImages InspirationImage[]
+  moodBoards MoodBoard[]
 }
 
 model TenantTheme {
@@ -334,6 +336,8 @@ model Project {
   products           ProjectProduct[]
   projectMessages    ProjectMessage[]
   voiceMessages      VoiceMessage[]
+  inspiration        ProjectInspiration[]
+  moodBoards         MoodBoard[]
 }
 
 model RoomType {
@@ -361,6 +365,7 @@ model Space {
   updatedAt  DateTime  @updatedAt
   questionResponses QuestionResponse[]
   products          ProjectProduct[]
+  inspiration       ProjectInspiration[]
 }
 
 model TenantLocation {
@@ -423,7 +428,7 @@ model ProjectStepStatus {
   status      StepStatus @default(not_started)
   completedAt DateTime?
   updatedAt   DateTime   @updatedAt
-
+  
   @@unique([projectId, stepKey])
 }
 
@@ -549,4 +554,45 @@ model VoiceMessage {
   audioUrl     String
   transcript   String?
   createdAt    DateTime          @default(now())
+}
+
+model InspirationImage {
+  id               String               @id @default(cuid())
+  tenantId         String
+  tenant           Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  url              String
+  uploadedByUserId String?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  projectLinks     ProjectInspiration[]
+}
+
+model ProjectInspiration {
+  id                 String           @id @default(cuid())
+  projectId          String
+  project            Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  spaceId            String?
+  space              Space?           @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  inspirationImageId String
+  inspirationImage   InspirationImage @relation(fields: [inspirationImageId], references: [id], onDelete: Cascade)
+  uploadedByClientId String?
+  uploadedByUserId   String?
+  clientVisible      Boolean          @default(false)
+  notes              String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+}
+
+model MoodBoard {
+  id            String   @id @default(cuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name          String
+  description   String?
+  imageUrl      String? // Generated composite image or thumbnail
+  clientVisible Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }

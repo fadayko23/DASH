@@ -1,10 +1,10 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import Link from "next/link"
 import { FaMapMarkerAlt, FaBed, FaBath, FaRulerCombined, FaHome } from "react-icons/fa"
 import SpacesList from "./spaces-list"
 import ProjectTracker from "./tracker"
 import ScheduleMeeting from "./scheduler"
+import Link from "next/link"
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()

@@ -45,6 +45,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id
+        token.clientId = user.clientId
         // Fetch tenants for the user
         const userTenants = await prisma.userTenant.findMany({
             where: { userId: user.id },
@@ -77,6 +78,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.id = token.id as string
         session.user.tenantId = token.tenantId as string | null | undefined
         session.user.tenants = (token.tenants as { tenantId: string; name: string; slug: string; role: string }[]) || []
+        session.user.clientId = token.clientId as string | null | undefined
       }
       return session
     },
