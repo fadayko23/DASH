@@ -4,6 +4,7 @@ import Link from "next/link"
 import { FaMapMarkerAlt, FaBed, FaBath, FaRulerCombined, FaHome } from "react-icons/fa"
 import SpacesList from "./spaces-list"
 import ProjectTracker from "./tracker"
+import ScheduleMeeting from "./scheduler"
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -70,6 +71,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Main Info & Property Card */}
             <div className="md:col-span-2 space-y-6">
+                <ScheduleMeeting projectId={id} />
+                
                 {/* Property Card */}
                 <div className="rounded-lg border bg-card overflow-hidden">
                     {project.mainImageUrl && (

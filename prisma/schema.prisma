@@ -79,6 +79,13 @@ enum StepStatus {
   complete
 }
 
+enum MeetingType {
+  discover
+  kickoff
+  followup
+  other
+}
+
 model User {
   id             String       @id @default(cuid())
   name           String?
@@ -109,6 +116,8 @@ model Tenant {
   intakeSubmissions IntakeSubmission[]
   stepTemplates StepTemplate[]
   questionTemplates QuestionTemplate[]
+  googleConnection TenantGoogleConnection?
+  meetings Meeting[]
 }
 
 model TenantTheme {
@@ -273,6 +282,7 @@ model Client {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   projects       Project[]
+  meetings       Meeting[]
 }
 
 model Project {
@@ -298,6 +308,7 @@ model Project {
   stepStatuses       ProjectStepStatus[]
   questionResponses  QuestionResponse[]
   intakeSubmission   IntakeSubmission?
+  meetings           Meeting[]
 }
 
 model RoomType {
@@ -416,4 +427,35 @@ model QuestionResponse {
   updatedAt          DateTime         @updatedAt
 
   @@unique([projectId, spaceId, questionTemplateId])
+}
+
+model TenantGoogleConnection {
+  id           String   @id @default(cuid())
+  tenantId     String   @unique
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  accountEmail String
+  accessToken  String   // In production, encrypt this!
+  refreshToken String?  // In production, encrypt this!
+  expiresAt    DateTime
+  scopes       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Meeting {
+  id                      String      @id @default(cuid())
+  tenantId                String
+  tenant                  Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projectId               String
+  project                 Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  clientId                String
+  client                  Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  type                    MeetingType @default(other)
+  title                   String
+  startDateTime           DateTime
+  endDateTime             DateTime
+  location                String?
+  externalCalendarEventId String?
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
 }
