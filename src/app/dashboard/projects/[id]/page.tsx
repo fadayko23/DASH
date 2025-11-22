@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { FaMapMarkerAlt, FaBed, FaBath, FaRulerCombined, FaHome } from "react-icons/fa"
 import SpacesList from "./spaces-list"
+import ProjectTracker from "./tracker"
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -11,7 +12,10 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const { id } = await params
   const project = await prisma.project.findUnique({
       where: { id },
-      include: { client: true }
+      include: { 
+          client: true,
+          stepStatuses: true
+      }
   })
 
   if (!project) return <div>Project not found</div>
@@ -19,15 +23,48 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const propertyMeta = project.propertyMetadataJson as any || {}
 
+  // Fetch step templates for the tracker
+  const stepTemplates = await prisma.stepTemplate.findMany({
+      where: { tenantId: session.user.tenantId },
+      orderBy: { order: 'asc' }
+  })
+
+  // Merge statuses
+  const steps = stepTemplates.map(template => {
+      const status = project.stepStatuses.find(s => s.stepKey === template.key)?.status || 'not_started'
+      return {
+          key: template.key,
+          displayName: template.displayName,
+          status
+      }
+  })
+
   return (
     <div className="space-y-8">
-        {/* Header */}
-        <div className="flex justify-between items-start">
-            <div>
-                 <Link href="/dashboard/projects" className="text-sm text-muted-foreground hover:text-foreground mb-2 block">&larr; Back to Projects</Link>
-                <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
-                <p className="text-muted-foreground">{project.client.name} • <span className="capitalize">{project.status.replace('_', ' ')}</span></p>
+        {/* Header & Tracker */}
+        <div className="space-y-6">
+            <div className="flex justify-between items-start">
+                <div>
+                    <Link href="/dashboard/projects" className="text-sm text-muted-foreground hover:text-foreground mb-2 block">&larr; Back to Projects</Link>
+                    <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
+                    <p className="text-muted-foreground">{project.client.name} • <span className="capitalize">{project.status.replace('_', ' ')}</span></p>
+                </div>
+                <div className="flex gap-2">
+                    <Link href={`/dashboard/projects/${id}/discover`} className="bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:bg-secondary/80 text-sm font-medium">
+                        Discover
+                    </Link>
+                    <Link href={`/dashboard/projects/${id}/kickoff`} className="bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:bg-secondary/80 text-sm font-medium">
+                        Kickoff
+                    </Link>
+                </div>
             </div>
+            
+            {/* Tracker */}
+            {steps.length > 0 && (
+                <div className="p-4 border rounded-lg bg-card/50">
+                    <ProjectTracker projectId={id} steps={steps} />
+                </div>
+            )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

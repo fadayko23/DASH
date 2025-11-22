@@ -68,6 +68,17 @@ enum ProjectStatus {
   archived
 }
 
+enum QuestionScope {
+  discover
+  kickoff
+}
+
+enum StepStatus {
+  not_started
+  in_progress
+  complete
+}
+
 model User {
   id             String       @id @default(cuid())
   name           String?
@@ -93,6 +104,11 @@ model Tenant {
   clients    Client[]
   projects   Project[]
   roomTypes  RoomType[]
+  locations  TenantLocation[]
+  intakeForms IntakeForm[]
+  intakeSubmissions IntakeSubmission[]
+  stepTemplates StepTemplate[]
+  questionTemplates QuestionTemplate[]
 }
 
 model TenantTheme {
@@ -279,6 +295,9 @@ model Project {
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
   spaces             Space[]
+  stepStatuses       ProjectStepStatus[]
+  questionResponses  QuestionResponse[]
+  intakeSubmission   IntakeSubmission?
 }
 
 model RoomType {
@@ -303,4 +322,98 @@ model Space {
   notes      String?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
+  questionResponses QuestionResponse[]
+}
+
+model TenantLocation {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  address   String
+  lat       Float?
+  lng       Float?
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model IntakeForm {
+  id          String             @id @default(cuid())
+  tenantId    String
+  tenant      Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  slug        String             @unique
+  configJson  Json
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  submissions IntakeSubmission[]
+}
+
+model IntakeSubmission {
+  id                String     @id @default(cuid())
+  tenantId          String
+  tenant            Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  intakeFormId      String
+  intakeForm        IntakeForm @relation(fields: [intakeFormId], references: [id], onDelete: Cascade)
+  name              String
+  email             String?
+  phone             String?
+  enteredAddress    String?
+  resolvedProjectId String?    @unique
+  resolvedProject   Project?   @relation(fields: [resolvedProjectId], references: [id])
+  rawPayloadJson    Json?
+  createdAt         DateTime   @default(now())
+}
+
+model StepTemplate {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  key         String
+  displayName String
+  order       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ProjectStepStatus {
+  id          String     @id @default(cuid())
+  projectId   String
+  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  stepKey     String
+  status      StepStatus @default(not_started)
+  completedAt DateTime?
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([projectId, stepKey])
+}
+
+model QuestionTemplate {
+  id          String        @id @default(cuid())
+  tenantId    String
+  tenant      Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  scope       QuestionScope
+  roomTypeId  String? // Nullable for kickoff general questions
+  prompt      String
+  helperText  String?
+  order       Int
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  responses   QuestionResponse[]
+}
+
+model QuestionResponse {
+  id                 String           @id @default(cuid())
+  projectId          String
+  project            Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  spaceId            String?
+  space              Space?           @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  questionTemplateId String
+  questionTemplate   QuestionTemplate @relation(fields: [questionTemplateId], references: [id], onDelete: Cascade)
+  answerText         String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@unique([projectId, spaceId, questionTemplateId])
 }
