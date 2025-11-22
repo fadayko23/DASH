@@ -29,6 +29,14 @@ export default function SettingsPage() {
             <h3 className="text-lg font-semibold mb-2">Contracts</h3>
             <p className="text-sm text-muted-foreground">Manage contract templates.</p>
         </Link>
+        <Link href="/dashboard/settings/vendors" className="p-6 rounded-lg border bg-card text-card-foreground shadow-sm hover:bg-accent transition-colors">
+            <h3 className="text-lg font-semibold mb-2">Vendors</h3>
+            <p className="text-sm text-muted-foreground">Manage vendor reps and locations.</p>
+        </Link>
+        <Link href="/dashboard/settings/emails" className="p-6 rounded-lg border bg-card text-card-foreground shadow-sm hover:bg-accent transition-colors">
+            <h3 className="text-lg font-semibold mb-2">Email Templates</h3>
+            <p className="text-sm text-muted-foreground">Manage email templates.</p>
+        </Link>
       </div>
     </div>
   )

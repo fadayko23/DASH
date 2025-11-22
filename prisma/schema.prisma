@@ -135,6 +135,20 @@ enum PaymentStatus {
   failed
 }
 
+enum ContactType {
+  studio
+  architect
+  contractor
+  other
+}
+
+enum ProjectContactRole {
+  architect
+  contractor
+  vendor
+  other
+}
+
 model User {
   id             String       @id @default(cuid())
   name           String?
@@ -191,6 +205,8 @@ model Tenant {
   emailTemplates EmailTemplate[]
   helpArticles HelpArticle[]
   helpWalkthroughs HelpWalkthrough[]
+  vendorReps TenantVendorRep[]
+  contactOrganizations ContactOrganization[]
 }
 
 model TenantTheme {
@@ -230,6 +246,59 @@ model Vendor {
   updatedAt DateTime                  @updatedAt
   products  Product[]
   overrides TenantProductOverride[]
+  locations VendorLocation[]
+  tenantReps TenantVendorRep[]
+}
+
+model VendorLocation {
+  id        String   @id @default(cuid())
+  vendorId  String
+  vendor    Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  name      String?  // e.g., "Downtown Showroom"
+  address   String
+  lat       Float?
+  lng       Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TenantVendorRep {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vendorId  String
+  vendor    Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  repName   String
+  repEmail  String?
+  repPhone  String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ContactOrganization {
+  id        String      @id @default(cuid())
+  tenantId  String
+  tenant    Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  type      ContactType
+  name      String
+  address   String?
+  lat       Float?
+  lng       Float?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  projectLinks ProjectContactLink[]
+}
+
+model ProjectContactLink {
+  id                    String              @id @default(cuid())
+  projectId             String
+  project               Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  contactOrganizationId String
+  contactOrganization   ContactOrganization @relation(fields: [contactOrganizationId], references: [id], onDelete: Cascade)
+  role                  ProjectContactRole
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
 }
 
 model ProductCategory {
@@ -398,6 +467,7 @@ model Project {
   contracts          Contract[]
   timeEntries        TimeEntry[]
   paymentRecords     PaymentRecord[]
+  contactLinks       ProjectContactLink[]
 }
 
 model RoomType {

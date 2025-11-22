@@ -7,6 +7,7 @@ import ScheduleMeeting from "./scheduler"
 import Link from "next/link"
 import ProjectTasks from "./tasks"
 import ProjectMilestones from "./milestones"
+import ProjectMap from "./map"
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -87,6 +88,13 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                         <div className="text-sm text-muted-foreground mb-4 flex items-center gap-2">
                             <FaMapMarkerAlt /> {project.projectAddress || 'No address listed'}
                         </div>
+                        
+                        {/* Map View */}
+                        {project.projectAddress && (
+                            <div className="mb-6">
+                                <ProjectMap projectId={project.id} />
+                            </div>
+                        )}
                         
                         {/* Enriched Data Grid */}
                         {project.projectAddress && (
