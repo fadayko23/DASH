@@ -93,11 +93,18 @@ enum ClientStatus {
   declined
 }
 
+enum MessageSenderType {
+  client
+  studio
+}
+
 model User {
   id             String       @id @default(cuid())
   name           String?
   email          String       @unique
   hashedPassword String?
+  clientId       String? // For client users
+  client         Client?      @relation(fields: [clientId], references: [id])
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   tenants        UserTenant[]
@@ -126,6 +133,8 @@ model Tenant {
   googleConnection TenantGoogleConnection?
   meetings Meeting[]
   spaceElementTemplates SpaceElementTemplate[]
+  projectMessages ProjectMessage[]
+  voiceMessages VoiceMessage[]
 }
 
 model TenantTheme {
@@ -293,6 +302,9 @@ model Client {
   updatedAt      DateTime  @updatedAt
   projects       Project[]
   meetings       Meeting[]
+  projectMessages ProjectMessage[]
+  voiceMessages   VoiceMessage[]
+  users           User[]
 }
 
 model Project {
@@ -320,6 +332,8 @@ model Project {
   intakeSubmission   IntakeSubmission?
   meetings           Meeting[]
   products           ProjectProduct[]
+  projectMessages    ProjectMessage[]
+  voiceMessages      VoiceMessage[]
 }
 
 model RoomType {
@@ -506,4 +520,33 @@ model ProjectProduct {
   notes           String?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
+}
+
+model ProjectMessage {
+  id           String            @id @default(cuid())
+  tenantId     String
+  tenant       Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projectId    String
+  project      Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  clientId     String
+  client       Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  senderType   MessageSenderType
+  senderUserId String? // If studio user
+  body         String
+  createdAt    DateTime          @default(now())
+}
+
+model VoiceMessage {
+  id           String            @id @default(cuid())
+  tenantId     String
+  tenant       Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projectId    String
+  project      Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  clientId     String
+  client       Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  senderType   MessageSenderType
+  senderUserId String?
+  audioUrl     String
+  transcript   String?
+  createdAt    DateTime          @default(now())
 }
