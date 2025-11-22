@@ -129,6 +129,12 @@ enum AmendmentStatus {
   cancelled
 }
 
+enum PaymentStatus {
+  pending
+  succeeded
+  failed
+}
+
 model User {
   id             String       @id @default(cuid())
   name           String?
@@ -178,6 +184,9 @@ model Tenant {
   contracts Contract[]
   roleRates RoleRate[]
   timeEntries TimeEntry[]
+  stripeConnection TenantStripeConnection?
+  billingCustomers BillingCustomer[]
+  paymentRecords PaymentRecord[]
 }
 
 model TenantTheme {
@@ -348,6 +357,7 @@ model Client {
   projectMessages ProjectMessage[]
   voiceMessages   VoiceMessage[]
   users           User[]
+  billingCustomer BillingCustomer?
 }
 
 model Project {
@@ -383,6 +393,7 @@ model Project {
   milestones         ProjectMilestone[]
   contracts          Contract[]
   timeEntries        TimeEntry[]
+  paymentRecords     PaymentRecord[]
 }
 
 model RoomType {
@@ -697,6 +708,7 @@ model ProjectMilestone {
   autoCharge  Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  paymentRecords PaymentRecord[]
 }
 
 model ContractTemplate {
@@ -726,6 +738,7 @@ model Contract {
   updatedAt          DateTime     @updatedAt
   amendments         Amendment[]
   timeEntries        TimeEntry[]
+  paymentRecords     PaymentRecord[]
 }
 
 model Amendment {
@@ -740,6 +753,7 @@ model Amendment {
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
   timeEntries         TimeEntry[]
+  paymentRecords      PaymentRecord[]
 }
 
 model RoleRate {
@@ -770,4 +784,49 @@ model TimeEntry {
   description String?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+}
+
+model TenantStripeConnection {
+  id           String   @id @default(cuid())
+  tenantId     String   @unique
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  stripeUserId String
+  accessToken  String   // Encrypted in production
+  refreshToken String?
+  scope        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model BillingCustomer {
+  id                 String   @id @default(cuid())
+  tenantId           String
+  tenant             Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientId           String   @unique
+  client             Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  provider           String   @default("stripe")
+  externalCustomerId String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model PaymentRecord {
+  id                String            @id @default(cuid())
+  tenantId          String
+  tenant            Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projectId         String
+  project           Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestoneId       String?
+  milestone         ProjectMilestone? @relation(fields: [milestoneId], references: [id])
+  contractId        String?
+  contract          Contract?         @relation(fields: [contractId], references: [id])
+  amendmentId       String?
+  amendment         Amendment?        @relation(fields: [amendmentId], references: [id])
+  provider          String            @default("stripe")
+  externalPaymentId String?
+  amount            Decimal           @db.Decimal(10, 2)
+  currency          String            @default("usd")
+  status            PaymentStatus     @default(pending)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 }

@@ -2,11 +2,12 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
-import { FaPlus, FaFlag } from 'react-icons/fa'
+import { FaPlus, FaFlag, FaCreditCard } from 'react-icons/fa'
 
 export default function ProjectMilestones({ projectId }: { projectId: string }) {
   const [isAdding, setIsAdding] = useState(false)
   const [newMilestone, setNewMilestone] = useState({ name: '', amount: '', date: '' })
+  const [paymentLoading, setPaymentLoading] = useState<string | null>(null)
   
   const { data: milestones, refetch } = useQuery({
       queryKey: ['milestones', projectId],
@@ -27,6 +28,28 @@ export default function ProjectMilestones({ projectId }: { projectId: string }) 
       setIsAdding(false)
       setNewMilestone({ name: '', amount: '', date: '' })
       refetch()
+  }
+
+  const handleGeneratePaymentLink = async (milestoneId: string) => {
+    setPaymentLoading(milestoneId)
+    try {
+        const res = await fetch(`/api/projects/${projectId}/milestones/${milestoneId}/pay`, {
+            method: 'POST'
+        })
+        if (res.ok) {
+            const data = await res.json()
+            // In a real app, we'd open a checkout session or show a modal with Stripe Elements
+            // For this MVP, we'll alert the user that the payment intent is ready
+            alert(`Payment Intent Created!\nID: ${data.paymentIntentId}\n\n(Integration point: Pass clientSecret to Stripe Elements)`)
+        } else {
+            alert('Failed to generate payment link. Ensure Stripe is connected in Settings.')
+        }
+    } catch (err) {
+        console.error(err)
+        alert('Error generating link')
+    } finally {
+        setPaymentLoading(null)
+    }
   }
 
   return (
@@ -81,8 +104,20 @@ export default function ProjectMilestones({ projectId }: { projectId: string }) 
                             </div>
                         </div>
                     </div>
-                    <div className="font-semibold text-sm">
-                        ${parseFloat(m.amount || '0').toLocaleString()}
+                    <div className="flex items-center gap-3">
+                        <div className="font-semibold text-sm">
+                            ${parseFloat(m.amount || '0').toLocaleString()}
+                        </div>
+                        {parseFloat(m.amount || '0') > 0 && (
+                            <button 
+                                onClick={() => handleGeneratePaymentLink(m.id)}
+                                disabled={paymentLoading === m.id}
+                                className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 disabled:opacity-50"
+                                title="Generate Payment Link"
+                            >
+                                {paymentLoading === m.id ? '...' : <FaCreditCard />}
+                            </button>
+                        )}
                     </div>
                 </div>
             ))}
