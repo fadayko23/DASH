@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { FaPlus, FaFileContract } from 'react-icons/fa'
+import { FaPlus, FaFileContract, FaSync, FaFileInvoiceDollar } from 'react-icons/fa'
 import { Contract, ContractTemplate, Amendment } from '@prisma/client'
 
 type ContractWithAmendments = Contract & { amendments: Amendment[] }
@@ -10,6 +10,7 @@ export default function ContractsClient({ projectId, initialContracts, templates
   const [contracts, setContracts] = useState(initialContracts)
   const [isNewOpen, setIsNewOpen] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState('')
+  const [loadingAction, setLoadingAction] = useState<string | null>(null)
 
   const handleCreateContract = async (e: React.FormEvent) => {
       e.preventDefault()
@@ -30,6 +31,21 @@ export default function ContractsClient({ projectId, initialContracts, templates
       const newContract = await res.json()
       setContracts([newContract, ...contracts])
       setIsNewOpen(false)
+  }
+
+  const handleCreateEstimate = async (contractId: string) => {
+      setLoadingAction(`estimate-${contractId}`)
+      try {
+          // Mock endpoint for now since we implemented service but not the route yet
+          // Or we could add a route /api/projects/[projectId]/contracts/[contractId]/qbo-estimate
+          // For MVP let's alert
+          alert("To implement: This would call the backend to create a QBO estimate.")
+      } catch (error) {
+          console.error(error)
+          alert("Failed to create estimate")
+      } finally {
+          setLoadingAction(null)
+      }
   }
 
   return (
@@ -100,7 +116,16 @@ export default function ContractsClient({ projectId, initialContracts, templates
                                 {contract.baseFlatAmount && ` • $${contract.baseFlatAmount}`}
                             </div>
                         </div>
-                        {/* Add buttons for View/Edit/Send later */}
+                        <div className="flex gap-2">
+                            {/* QBO Sync Button Placeholder */}
+                             <button 
+                                onClick={() => handleCreateEstimate(contract.id)}
+                                className="flex items-center gap-1 text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700"
+                                title="Create Estimate in QuickBooks"
+                            >
+                                <FaSync size={10} /> QBO Estimate
+                            </button>
+                        </div>
                     </div>
                     
                     {contract.amendments?.length > 0 && (

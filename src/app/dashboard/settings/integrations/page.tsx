@@ -35,6 +35,10 @@ export default async function IntegrationsPage({
     where: { tenantId },
   });
 
+  const qboConnection = await prisma.tenantAccountingConfig.findUnique({
+    where: { tenantId },
+  });
+
   const params = await searchParams;
   const error = params?.error;
   const success = params?.success;
@@ -109,6 +113,33 @@ export default async function IntegrationsPage({
               className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-[#635bff] text-white hover:bg-[#635bff]/90 h-10 px-4 py-2"
             >
               Connect Stripe
+            </a>
+          )}
+        </div>
+
+        {/* QuickBooks Online Integration */}
+        <div className="border rounded-lg p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">QuickBooks Online</h2>
+            {qboConnection ? (
+              <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Connected</span>
+            ) : (
+              <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">Not Connected</span>
+            )}
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Connect QuickBooks Online to sync clients, estimates, and invoices.
+          </p>
+          {qboConnection ? (
+             <div className="text-sm text-gray-600">
+               <p>Realm ID: <strong>{qboConnection.realmId}</strong></p>
+             </div>
+          ) : (
+            <a
+              href="/api/integrations/qbo/connect"
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-[#2CA01C] text-white hover:bg-[#2CA01C]/90 h-10 px-4 py-2"
+            >
+              Connect QuickBooks
             </a>
           )}
         </div>
