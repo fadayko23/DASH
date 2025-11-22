@@ -54,6 +54,20 @@ enum ScrapeStatus {
   failed
 }
 
+enum ProjectType {
+  residential
+  commercial
+  other
+}
+
+enum ProjectStatus {
+  prospect
+  active
+  on_hold
+  complete
+  archived
+}
+
 model User {
   id             String       @id @default(cuid())
   name           String?
@@ -76,6 +90,9 @@ model Tenant {
   products  Product[] // Tenant-owned products
   overrides TenantProductOverride[]
   scrapeJobs ScrapeJob[]
+  clients    Client[]
+  projects   Project[]
+  roomTypes  RoomType[]
 }
 
 model TenantTheme {
@@ -226,4 +243,64 @@ model ProductUrlHealth {
   lastStatusCode Int?
   isBroken       Boolean  @default(false)
   notes          String?
+}
+
+model Client {
+  id             String    @id @default(cuid())
+  tenantId       String
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name           String
+  email          String?
+  phone          String?
+  primaryAddress String?
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  projects       Project[]
+}
+
+model Project {
+  id                 String        @id @default(cuid())
+  tenantId           String
+  tenant             Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientId           String
+  client             Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  name               String
+  description        String?
+  type               ProjectType   @default(residential)
+  phase              String?
+  status             ProjectStatus @default(prospect)
+  projectAddress     String?
+  projectLat         Float?
+  projectLng         Float?
+  billingAddress     String?
+  propertyMetadataJson Json?
+  mainImageUrl       String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  spaces             Space[]
+}
+
+model RoomType {
+  id        String   @id @default(cuid())
+  tenantId  String?
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  category  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  spaces    Space[]
+}
+
+model Space {
+  id         String    @id @default(cuid())
+  projectId  String
+  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  roomTypeId String?
+  roomType   RoomType? @relation(fields: [roomTypeId], references: [id])
+  name       String
+  floor      String?
+  notes      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 }
