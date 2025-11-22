@@ -17,6 +17,10 @@ export default function SettingsPage() {
             <h3 className="text-lg font-semibold mb-2">Integrations</h3>
             <p className="text-sm text-muted-foreground">Connect Google, Stripe, and other services.</p>
         </Link>
+        <Link href="/dashboard/settings/room-templates" className="p-6 rounded-lg border bg-card text-card-foreground shadow-sm hover:bg-accent transition-colors">
+            <h3 className="text-lg font-semibold mb-2">Room Templates</h3>
+            <p className="text-sm text-muted-foreground">Define standard elements for room types.</p>
+        </Link>
       </div>
     </div>
   )

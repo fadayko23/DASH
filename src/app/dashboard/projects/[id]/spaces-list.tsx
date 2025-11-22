@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { FaPlus, FaDoorOpen } from 'react-icons/fa'
 
+import Link from 'next/link'
+
 export default function SpacesList({ projectId }: { projectId: string }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const { data: spaces, refetch } = useQuery({
@@ -27,12 +29,12 @@ export default function SpacesList({ projectId }: { projectId: string }) {
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {spaces?.map((space: { id: string; name: string; floor?: string; roomType?: { name: string } }) => (
-                <div key={space.id} className="p-4 border rounded-md hover:bg-muted/20 transition-colors cursor-pointer">
+                <Link href={`/dashboard/projects/${projectId}/spaces/${space.id}`} key={space.id} className="p-4 border rounded-md hover:bg-muted/20 transition-colors cursor-pointer block">
                     <div className="font-medium">{space.name}</div>
                     <div className="text-xs text-muted-foreground">
                         {space.floor ? `Floor ${space.floor}` : 'No floor set'} • {space.roomType?.name || 'General'}
                     </div>
-                </div>
+                </Link>
             ))}
              {spaces?.length === 0 && (
                 <div className="col-span-full text-center text-muted-foreground py-4 text-sm">
