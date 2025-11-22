@@ -104,6 +104,31 @@ enum TaskStatus {
   done
 }
 
+enum ContractType {
+  client
+  builder
+}
+
+enum ContractStatus {
+  draft
+  sent
+  signed
+  cancelled
+}
+
+enum BillingModel {
+  hourly
+  flat_rate
+  hybrid
+}
+
+enum AmendmentStatus {
+  draft
+  sent
+  signed
+  cancelled
+}
+
 model User {
   id             String       @id @default(cuid())
   name           String?
@@ -115,6 +140,7 @@ model User {
   updatedAt      DateTime     @updatedAt
   tenants        UserTenant[]
   tasks          Task[]
+  timeEntries    TimeEntry[]
 }
 
 model Tenant {
@@ -148,6 +174,10 @@ model Tenant {
   phaseTaskTemplates PhaseTaskTemplate[]
   tasks Task[]
   projectMilestones ProjectMilestone[]
+  contractTemplates ContractTemplate[]
+  contracts Contract[]
+  roleRates RoleRate[]
+  timeEntries TimeEntry[]
 }
 
 model TenantTheme {
@@ -351,6 +381,8 @@ model Project {
   moodBoards         MoodBoard[]
   tasks              Task[]
   milestones         ProjectMilestone[]
+  contracts          Contract[]
+  timeEntries        TimeEntry[]
 }
 
 model RoomType {
@@ -665,4 +697,77 @@ model ProjectMilestone {
   autoCharge  Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model ContractTemplate {
+  id        String       @id @default(cuid())
+  tenantId  String
+  tenant    Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  type      ContractType
+  body      String       @db.Text
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model Contract {
+  id                 String       @id @default(cuid())
+  tenantId           String
+  tenant             Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projectId          String
+  project            Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  templateId         String?
+  title              String
+  status             ContractStatus @default(draft)
+  billingModel       BillingModel @default(hourly)
+  baseHoursAllocated Decimal?     @db.Decimal(10, 2)
+  baseFlatAmount     Decimal?     @db.Decimal(10, 2)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  amendments         Amendment[]
+  timeEntries        TimeEntry[]
+}
+
+model Amendment {
+  id                  String          @id @default(cuid())
+  contractId          String
+  contract            Contract        @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  title               String
+  description         String?
+  extraHoursAllocated Decimal?        @db.Decimal(10, 2)
+  extraFlatAmount     Decimal?        @db.Decimal(10, 2)
+  status              AmendmentStatus @default(draft)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  timeEntries         TimeEntry[]
+}
+
+model RoleRate {
+  id         String   @id @default(cuid())
+  tenantId   String
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  roleName   String
+  hourlyRate Decimal  @db.Decimal(10, 2)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model TimeEntry {
+  id          String     @id @default(cuid())
+  tenantId    String
+  tenant      Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projectId   String
+  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  contractId  String?
+  contract    Contract?  @relation(fields: [contractId], references: [id])
+  amendmentId String?
+  amendment   Amendment? @relation(fields: [amendmentId], references: [id])
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleName    String
+  date        DateTime
+  hours       Decimal    @db.Decimal(10, 2)
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }

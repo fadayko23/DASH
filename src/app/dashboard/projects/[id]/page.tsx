@@ -122,6 +122,17 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
             {/* Sidebar / Meta */}
             <div className="space-y-6">
+                <div className="flex flex-col gap-2">
+                    <Link href={`/dashboard/projects/${id}/contracts`} className="bg-card border p-4 rounded-lg text-center hover:border-primary transition-colors">
+                        <span className="block font-semibold">Contracts</span>
+                        <span className="text-xs text-muted-foreground">Manage agreements</span>
+                    </Link>
+                    <Link href={`/dashboard/projects/${id}/time`} className="bg-card border p-4 rounded-lg text-center hover:border-primary transition-colors">
+                        <span className="block font-semibold">Time Tracking</span>
+                        <span className="text-xs text-muted-foreground">Log hours</span>
+                    </Link>
+                </div>
+
                 <ProjectTasks projectId={id} />
                 <ProjectMilestones projectId={id} />
 

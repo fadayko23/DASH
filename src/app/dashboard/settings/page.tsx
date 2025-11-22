@@ -21,6 +21,14 @@ export default function SettingsPage() {
             <h3 className="text-lg font-semibold mb-2">Room Templates</h3>
             <p className="text-sm text-muted-foreground">Define standard elements for room types.</p>
         </Link>
+        <Link href="/dashboard/settings/billing" className="p-6 rounded-lg border bg-card text-card-foreground shadow-sm hover:bg-accent transition-colors">
+            <h3 className="text-lg font-semibold mb-2">Billing & Rates</h3>
+            <p className="text-sm text-muted-foreground">Manage role-based hourly rates.</p>
+        </Link>
+        <Link href="/dashboard/settings/contracts" className="p-6 rounded-lg border bg-card text-card-foreground shadow-sm hover:bg-accent transition-colors">
+            <h3 className="text-lg font-semibold mb-2">Contracts</h3>
+            <p className="text-sm text-muted-foreground">Manage contract templates.</p>
+        </Link>
       </div>
     </div>
   )
