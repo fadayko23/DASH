@@ -549,6 +549,19 @@ model Meeting {
   externalCalendarEventId String?
   createdAt               DateTime    @default(now())
   updatedAt               DateTime    @updatedAt
+  recordings              MeetingRecording[]
+}
+
+model MeetingRecording {
+  id              String   @id @default(cuid())
+  meetingId       String
+  meeting         Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  storageUrl      String
+  transcript      String?  @db.Text
+  summary         String?  @db.Text
+  actionItemsJson Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model SpaceElementTemplate {
