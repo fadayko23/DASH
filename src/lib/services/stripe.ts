@@ -1,9 +1,18 @@
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-11-17.clover",
-});
+let stripeInstance: Stripe | undefined;
+
+function getStripe() {
+  if (!stripeInstance) {
+    // Fallback for build time if env var is missing
+    const key = process.env.STRIPE_SECRET_KEY || "sk_test_dummy_build_key";
+    stripeInstance = new Stripe(key, {
+      apiVersion: "2025-11-17.clover",
+    });
+  }
+  return stripeInstance;
+}
 
 export async function getStripeConnection(tenantId: string) {
   return await prisma.tenantStripeConnection.findUnique({
@@ -34,7 +43,7 @@ export async function createCustomerForClient(
   }
 
   // Create customer on the connected account
-  const customer = await stripe.customers.create(
+  const customer = await getStripe().customers.create(
     {
       email: client.email || undefined,
       name: client.name,
@@ -84,7 +93,7 @@ export async function createPaymentIntentForMilestone(
 
   const amountCents = Math.round(Number(milestone.amount) * 100);
 
-  const paymentIntent = await stripe.paymentIntents.create(
+  const paymentIntent = await getStripe().paymentIntents.create(
     {
       amount: amountCents,
       currency: "usd",
@@ -126,7 +135,7 @@ export async function getPaymentStatus(paymentIntentId: string, tenantId: string
     throw new Error("Tenant not connected to Stripe");
   }
 
-  return await stripe.paymentIntents.retrieve(paymentIntentId, {
+  return await getStripe().paymentIntents.retrieve(paymentIntentId, {
     stripeAccount: connection.stripeUserId,
   });
 }
