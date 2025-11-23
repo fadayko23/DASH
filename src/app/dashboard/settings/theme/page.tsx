@@ -28,7 +28,12 @@ export default async function ThemeSettingsPage() {
 
   return (
     <div className="max-w-2xl space-y-8">
-      <h1 className="text-2xl font-bold">Theme Settings</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Theme Settings</h1>
+        <a href="/dashboard/settings/theme/style-guide" className="text-sm text-primary hover:underline">
+          View Style Guide
+        </a>
+      </div>
       <ThemeForm initialTheme={themeProps} />
     </div>
   )

@@ -24,15 +24,17 @@ export function ThemeProvider({ theme }: { theme: Theme | null }) {
     root.style.setProperty('--accent', theme.accentColor)
     root.style.setProperty('--background', theme.bgColor)
     root.style.setProperty('--foreground', theme.textColor)
-    root.style.setProperty('--font-sans', theme.fontFamily === 'serif' ? 'serif' : theme.fontFamily === 'mono' ? 'monospace' : 'sans-serif') // Simplified mapping
     
-    // Convert hex/values if necessary for Tailwind alpha opacity vars if using variable based colors which we are.
-    // But our globals.css uses hex directly. Tailwind 4 might handle it differently, or we need to use rgb.
-    // For now, assuming direct hex assignment works with the variable definitions in globals.css which map to --color-primary etc.
+    const getFontFamily = (font: string) => {
+        if (!font) return 'inherit'
+        if (font === 'serif') return 'serif'
+        if (font === 'mono') return 'monospace'
+        if (font === 'sans') return 'sans-serif'
+        return `"${font}", sans-serif`
+    }
+    root.style.setProperty('--font-sans', getFontFamily(theme.fontFamily))
     
     root.style.setProperty('--radius', theme.borderRadius)
-    // Shadow handling might need a more complex map if "sm", "md", "lg" are the presets.
-    // For now, ignoring shadowPreset direct CSS var mapping unless we define --shadow-custom.
     
   }, [theme])
 

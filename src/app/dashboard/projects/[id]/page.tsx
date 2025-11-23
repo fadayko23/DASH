@@ -1,13 +1,10 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { FaMapMarkerAlt, FaBed, FaBath, FaRulerCombined, FaHome } from "react-icons/fa"
-import SpacesList from "./spaces-list"
-import ProjectTracker from "./tracker"
-import ScheduleMeeting from "./scheduler"
+import { StatusBadge } from "@/components/ui/status-badge"
+import { ProjectStatusToggles } from "@/components/project-status-toggles"
+import { FaClock, FaExternalLinkAlt, FaEllipsisH, FaRegImage, FaMapMarkerAlt } from "react-icons/fa"
 import Link from "next/link"
-import ProjectTasks from "./tasks"
-import ProjectMilestones from "./milestones"
-import ProjectMap from "./map"
+import { notFound } from "next/navigation"
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -18,162 +15,181 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
       where: { id },
       include: { 
           client: true,
-          stepStatuses: true
+          stepStatuses: true,
+          contracts: { include: { amendments: true } },
+          timeEntries: true
       }
   })
 
-  if (!project) return <div>Project not found</div>
+  if (!project) return notFound()
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const propertyMeta = project.propertyMetadataJson as any || {}
+  // Calculate Hours
+  const totalAllocatedHours = project.contracts.reduce((sum, c) => {
+      const base = c.baseHoursAllocated ? Number(c.baseHoursAllocated) : 0
+      const amendments = c.amendments.reduce((aSum, a) => aSum + (a.extraHoursAllocated ? Number(a.extraHoursAllocated) : 0), 0)
+      return sum + base + amendments
+  }, 0)
+  
+  const totalUsedHours = project.timeEntries.reduce((sum, t) => sum + Number(t.hours), 0)
+  const remainingHours = totalAllocatedHours - totalUsedHours
 
-  // Fetch step templates for the tracker
+  // Prepare Steps
   const stepTemplates = await prisma.stepTemplate.findMany({
       where: { tenantId: session.user.tenantId },
       orderBy: { order: 'asc' }
   })
-
-  // Merge statuses
   const steps = stepTemplates.map(template => {
       const status = project.stepStatuses.find(s => s.stepKey === template.key)?.status || 'not_started'
-      return {
-          key: template.key,
-          displayName: template.displayName,
-          status
-      }
+      return { key: template.key, displayName: template.displayName, status }
   })
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const meta = (project.propertyMetadataJson as any) || {}
+
   return (
-    <div className="space-y-8">
-        {/* Header & Tracker */}
-        <div className="space-y-6">
-            <div className="flex justify-between items-start">
-                <div>
-                    <Link href="/dashboard/projects" className="text-sm text-muted-foreground hover:text-foreground mb-2 block">&larr; Back to Projects</Link>
-                    <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
-                    <p className="text-muted-foreground">{project.client.name} • <span className="capitalize">{project.status.replace('_', ' ')}</span></p>
+    <div className="h-full flex flex-col bg-muted/10">
+        {/* Sticky Header */}
+        <header className="bg-background border-b sticky top-0 z-10 px-8 py-4 flex justify-between items-center shadow-sm">
+            <div>
+                <div className="flex items-center gap-3 mb-1">
+                    <h1 className="text-2xl font-bold text-foreground">{project.name}</h1>
+                    <StatusBadge status={project.status} className="px-3 py-1 text-sm" />
                 </div>
-                <div className="flex gap-2">
-                    <Link href={`/dashboard/projects/${id}/discover`} className="bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:bg-secondary/80 text-sm font-medium">
-                        Discover
-                    </Link>
-                    <Link href={`/dashboard/projects/${id}/kickoff`} className="bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:bg-secondary/80 text-sm font-medium">
-                        Kickoff
-                    </Link>
+                <div className="flex items-center text-muted-foreground text-sm gap-2">
+                    <FaMapMarkerAlt /> {project.projectAddress || 'No address set'}
                 </div>
             </div>
-            
-            {/* Tracker */}
-            {steps.length > 0 && (
-                <div className="p-4 border rounded-lg bg-card/50">
-                    <ProjectTracker projectId={id} steps={steps} />
-                </div>
-            )}
-        </div>
+            <div className="flex items-center gap-2">
+                 <button className="p-2 hover:bg-accent rounded-md border bg-background text-muted-foreground">
+                    <FaEllipsisH />
+                 </button>
+                 <Link href={`/dashboard/projects/${id}/selections`} className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium hover:bg-primary/90 flex items-center gap-2">
+                    <FaRegImage /> Photos
+                 </Link>
+            </div>
+        </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Main Info & Property Card */}
-            <div className="md:col-span-2 space-y-6">
-                <ScheduleMeeting projectId={id} />
+        <div className="flex-1 overflow-auto p-8">
+            <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
-                {/* Property Card */}
-                <div className="rounded-lg border bg-card overflow-hidden">
-                    {project.mainImageUrl && (
-                        <div className="h-48 w-full bg-cover bg-center" style={{ backgroundImage: `url(${project.mainImageUrl})` }} />
-                    )}
-                    <div className="p-6">
-                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                            <FaHome className="text-primary"/> Property Details
-                        </h3>
-                        <div className="text-sm text-muted-foreground mb-4 flex items-center gap-2">
-                            <FaMapMarkerAlt /> {project.projectAddress || 'No address listed'}
+                {/* Left Column - Main Details */}
+                <div className="lg:col-span-2 space-y-8">
+                    
+                    {/* Project Details Section */}
+                    <section className="bg-card rounded-xl border shadow-sm p-6">
+                        <h2 className="text-lg font-semibold mb-6">Project Details</h2>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                            {/* Address */}
+                            <div className="col-span-2">
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Project Complete Address</label>
+                                <div className="mt-1 p-3 bg-muted/20 rounded-md border border-transparent hover:border-border transition-colors">
+                                    {project.projectAddress || '—'}
+                                </div>
+                            </div>
+
+                            {/* Phase & Status */}
+                            <div>
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Project Phase</label>
+                                <div className="mt-1">
+                                     <div className="bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 px-3 py-1.5 rounded-md inline-block text-sm font-medium">
+                                        {project.phase || 'Design Oversight'}
+                                     </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Project Status</label>
+                                <div className="mt-1">
+                                     <StatusBadge status={project.status} />
+                                </div>
+                            </div>
+
+                            {/* Dates & Contract */}
+                            <div>
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Project Start Date</label>
+                                <div className="mt-1 p-2 border rounded-md bg-background text-sm">
+                                    {new Date(project.createdAt).toLocaleDateString()}
+                                </div>
+                            </div>
+                             <div>
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Contract Type</label>
+                                <div className="mt-1 p-2 border rounded-md bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-sm">
+                                    {project.contracts[0]?.billingModel || 'Residential'}
+                                </div>
+                            </div>
+
+                             {/* Budget & Timeline */}
+                             <div>
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Project Ideal Budget</label>
+                                <div className="mt-1 p-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 rounded-full text-sm font-medium inline-block px-4">
+                                    {meta.idealBudget || '$1 Million - $1.25 Million'}
+                                </div>
+                            </div>
+                             <div>
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Project Ideal Timeline</label>
+                                <div className="mt-1 p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full text-sm font-medium inline-block px-4">
+                                    {meta.timeline || '3 - 6 (Months)'}
+                                </div>
+                            </div>
+                            
+                            <div className="col-span-2 flex items-center gap-2 pt-2">
+                                <input type="checkbox" id="override" className="rounded border-gray-300" />
+                                <label htmlFor="override" className="text-sm font-medium">Override Project Details</label>
+                            </div>
+
                         </div>
-                        
-                        {/* Map View */}
-                        {project.projectAddress && (
-                            <div className="mb-6">
-                                <ProjectMap projectId={project.id} />
-                            </div>
-                        )}
-                        
-                        {/* Enriched Data Grid */}
-                        {project.projectAddress && (
-                            <div className="grid grid-cols-3 gap-4 border-t pt-4">
-                                <div className="flex flex-col items-center p-2 bg-muted/30 rounded">
-                                    <FaBed className="text-muted-foreground mb-1"/>
-                                    <span className="font-bold">{propertyMeta.beds || '-'}</span>
-                                    <span className="text-xs text-muted-foreground">Beds</span>
-                                </div>
-                                <div className="flex flex-col items-center p-2 bg-muted/30 rounded">
-                                    <FaBath className="text-muted-foreground mb-1"/>
-                                    <span className="font-bold">{propertyMeta.baths || '-'}</span>
-                                    <span className="text-xs text-muted-foreground">Baths</span>
-                                </div>
-                                <div className="flex flex-col items-center p-2 bg-muted/30 rounded">
-                                    <FaRulerCombined className="text-muted-foreground mb-1"/>
-                                    <span className="font-bold">{propertyMeta.sqft || '-'}</span>
-                                    <span className="text-xs text-muted-foreground">Sq Ft</span>
-                                </div>
-                            </div>
-                        )}
-                        {project.projectLat && (
-                            <div className="mt-4 text-xs text-muted-foreground">
-                                Coordinates: {project.projectLat.toFixed(4)}, {project.projectLng?.toFixed(4)}
-                            </div>
-                        )}
+                    </section>
+
+                    {/* Additional Notes */}
+                    <section className="bg-card rounded-xl border shadow-sm p-6">
+                        <h2 className="text-lg font-semibold mb-4">Project Additional Notes</h2>
+                        <textarea 
+                            className="w-full min-h-[150px] p-4 rounded-md border bg-muted/10 focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all resize-none text-sm"
+                            placeholder="Add notes here..."
+                            defaultValue={project.description || ''}
+                        />
+                    </section>
+
+                </div>
+
+                {/* Right Column - Tracking & Widgets */}
+                <div className="space-y-8">
+                    
+                    {/* Status Tracking */}
+                    <div className="bg-card rounded-xl border shadow-sm p-6">
+                        <ProjectStatusToggles projectId={id} steps={steps.length ? steps : [
+                            { key: 'discovery', displayName: 'Has the Discovery Call been completed?', status: 'complete' },
+                            { key: 'site_visit', displayName: 'Has the Site Visit been completed?', status: 'complete' },
+                            { key: 'contract', displayName: 'Has the contract been sent to the client?', status: 'complete' }
+                        ]} />
+                         <div className="mt-6 pt-4 border-t flex items-center gap-2 text-sm">
+                            <input type="checkbox" id="show-times" className="rounded border-gray-300" />
+                            <label htmlFor="show-times" className="text-muted-foreground">Would you like to show last updated timeframes?</label>
+                        </div>
                     </div>
-                </div>
-                
-                {/* Spaces Section */}
-                <SpacesList projectId={project.id} />
-            </div>
 
-            {/* Sidebar / Meta */}
-            <div className="space-y-6">
-                <div className="flex flex-col gap-2">
-                    <Link href={`/dashboard/projects/${id}/contracts`} className="bg-card border p-4 rounded-lg text-center hover:border-primary transition-colors">
-                        <span className="block font-semibold">Contracts</span>
-                        <span className="text-xs text-muted-foreground">Manage agreements</span>
-                    </Link>
-                    <Link href={`/dashboard/projects/${id}/time`} className="bg-card border p-4 rounded-lg text-center hover:border-primary transition-colors">
-                        <span className="block font-semibold">Time Tracking</span>
-                        <span className="text-xs text-muted-foreground">Log hours</span>
-                    </Link>
-                </div>
+                    {/* Time Tracking Widget */}
+                    <div className="bg-card rounded-xl border shadow-sm p-6">
+                        <h2 className="text-lg font-semibold mb-4">Time Tracking</h2>
+                        <div className="space-y-4">
+                            <div>
+                                <div className="text-sm text-muted-foreground mb-1">Hours Remaining</div>
+                                <div className="text-4xl font-bold tracking-tight">{remainingHours.toFixed(2)}</div>
+                                <div className="text-xs text-muted-foreground mt-1">Remaining hours allocated to the project.</div>
+                            </div>
+                            
+                            <div className="pt-4 border-t">
+                                <div className="text-sm font-medium mb-1">Last Updated</div>
+                                <div className="text-sm text-muted-foreground">
+                                    Time and date when the project hours were last updated.
+                                </div>
+                                <div className="mt-2 text-sm font-mono bg-muted/30 p-2 rounded">
+                                    June 2, 2025 4:39pm
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                <ProjectTasks projectId={id} />
-                <ProjectMilestones projectId={id} />
-
-                <div className="p-6 border rounded-lg bg-card">
-                    <h3 className="font-semibold mb-4">Project Info</h3>
-                    <dl className="space-y-2 text-sm">
-                         <div>
-                            <dt className="text-muted-foreground">Type</dt>
-                            <dd className="capitalize">{project.type}</dd>
-                        </div>
-                        <div>
-                            <dt className="text-muted-foreground">Phase</dt>
-                            <dd>{project.phase || 'Not set'}</dd>
-                        </div>
-                        <div>
-                            <dt className="text-muted-foreground">Created</dt>
-                            <dd>{new Date(project.createdAt).toLocaleDateString()}</dd>
-                        </div>
-                    </dl>
-                </div>
-                
-                <div className="p-6 border rounded-lg bg-card">
-                    <h3 className="font-semibold mb-4">Client Info</h3>
-                    <dl className="space-y-2 text-sm">
-                         <div>
-                            <dt className="text-muted-foreground">Email</dt>
-                            <dd><a href={`mailto:${project.client.email}`} className="hover:underline">{project.client.email || '-'}</a></dd>
-                        </div>
-                        <div>
-                            <dt className="text-muted-foreground">Phone</dt>
-                            <dd>{project.client.phone || '-'}</dd>
-                        </div>
-                    </dl>
                 </div>
             </div>
         </div>
