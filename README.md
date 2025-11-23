@@ -60,6 +60,12 @@ All third-party integrations are tenant-level via OAuth (NOT per-user):
     npm run dev
     ```
 
+## Database Configuration (Supabase)
+
+If using Supabase, ensure you use the **Transaction Pooler** or **Session Pooler** (IPv4 compatible) for the `DATABASE_URL` in serverless environments (like Vercel) and for local development if your network is IPv4-only.
+
+Example: `postgresql://[user].[project]:[password]@[host]:5432/postgres`
+
 ## PWA Support
 
 This app is a PWA. In production (`npm run build`), it will generate a service worker.
