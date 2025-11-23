@@ -150,18 +150,24 @@ async function main() {
     data: { name: 'Stark Furnishings' }
   })
 
+  const furnitureCategory = await prisma.productCategory.create({
+    data: { name: 'Furniture' }
+  })
+
+  const sofaType = await prisma.productType.create({
+    data: {
+      name: 'Sofa',
+      categoryId: furnitureCategory.id
+    }
+  })
+
   const sofa = await prisma.product.create({
     data: {
       name: 'Arc Reactor Sofa',
       scope: ProductScope.tenant,
       ownerTenantId: tenant.id,
       vendorId: vendor.id,
-      productType: {
-          create: {
-              name: 'Sofa',
-              category: { create: { name: 'Furniture' } }
-          }
-      },
+      productTypeId: sofaType.id,
       status: 'active',
       description: 'Glowing blue cushions.',
       media: {
