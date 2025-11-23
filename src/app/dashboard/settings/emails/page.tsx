@@ -46,7 +46,7 @@ export default function EmailSettingsPage() {
           amount: "5000.00"
       }
       for (const [k, v] of Object.entries(mockData)) {
-          preview = preview.split(`{{${k}}}`).join(v)
+          preview = preview.split(`{{${k}}}`).join(v as string)
       }
       return preview
   }
