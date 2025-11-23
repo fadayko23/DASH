@@ -5,7 +5,7 @@ import { createPaymentIntentForMilestone } from "@/lib/services/stripe";
 
 export async function POST(
   req: Request,
-  { params }: { params: { projectId: string; milestoneId: string } }
+  { params }: { params: Promise<{ projectId: string; milestoneId: string }> }
 ) {
   const session = await auth();
   if (!session?.user?.email) {
