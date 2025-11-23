@@ -1,7 +1,8 @@
 import { headers } from 'next/headers'
 import { prisma } from '@/lib/prisma'
+import { cache } from 'react'
 
-export async function getCurrentTenant() {
+export const getCurrentTenant = cache(async () => {
   const headersList = await headers()
   const host = headersList.get('host') || ''
   const tenantSlugHeader = headersList.get('x-tenant-slug')
@@ -12,10 +13,6 @@ export async function getCurrentTenant() {
   if (host.includes('.')) {
      const parts = host.split('.')
      // Assuming format: slug.domain.com or slug.localhost:3000
-     // If localhost, it might be just localhost:3000 (no dot usually) or slug.localhost
-     // We need to be careful with www or other prefixes.
-     // For simplicity in this phase, let's assume the first part is the slug if it's not 'www' and not the main domain.
-     // This logic might need refinement based on actual domain config.
      if (parts.length > 2 || (host.includes('localhost') && parts.length > 1)) {
          slug = parts[0]
      }
@@ -31,9 +28,6 @@ export async function getCurrentTenant() {
     slug = process.env.DEMO_TENANT_SLUG
   }
 
-  // 4. If we resolved a slug but it didn't match anything in DB, maybe fallback to demo?
-  // For now, let's try to find it.
-
   if (!slug) return null
 
   let tenant = await prisma.tenant.findUnique({
@@ -43,7 +37,7 @@ export async function getCurrentTenant() {
     }
   })
 
-  // Fallback: if resolved slug (e.g. 'dash-gules-eight') wasn't found, try the demo slug
+  // Fallback: if resolved slug wasn't found, try the demo slug
   if (!tenant && process.env.DEMO_TENANT_SLUG && slug !== process.env.DEMO_TENANT_SLUG) {
       tenant = await prisma.tenant.findUnique({
           where: { slug: process.env.DEMO_TENANT_SLUG },
@@ -52,4 +46,4 @@ export async function getCurrentTenant() {
   }
 
   return tenant
-}
+})
