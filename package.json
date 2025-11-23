@@ -39,6 +39,10 @@
     "tsx": "^4.20.6",
     "typescript": "^5"
   },
+  "overrides": {
+    "workbox-build": "7.4.0",
+    "workbox-webpack-plugin": "7.4.0"
+  },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   }
