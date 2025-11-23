@@ -1,0 +1,968 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  owner
+  designer
+  assistant
+  admin
+  client
+}
+
+enum ProductScope {
+  global
+  tenant
+}
+
+enum ProductStatus {
+  active
+  discontinued
+  archived
+  deleted
+}
+
+enum MediaType {
+  image
+  spec
+  guide
+}
+
+enum OverrideAvailability {
+  default
+  hidden
+  preferred
+}
+
+enum ScrapeMode {
+  single
+  list
+}
+
+enum ScrapeStatus {
+  pending
+  running
+  success
+  failed
+}
+
+enum ProjectType {
+  residential
+  commercial
+  other
+}
+
+enum ProjectStatus {
+  prospect
+  active
+  on_hold
+  complete
+  archived
+}
+
+enum QuestionScope {
+  discover
+  kickoff
+}
+
+enum StepStatus {
+  not_started
+  in_progress
+  complete
+}
+
+enum MeetingType {
+  discover
+  kickoff
+  followup
+  other
+}
+
+enum ClientStatus {
+  hidden
+  proposed
+  approved
+  declined
+}
+
+enum MessageSenderType {
+  client
+  studio
+}
+
+enum TaskStatus {
+  todo
+  in_progress
+  done
+}
+
+enum ContractType {
+  client
+  builder
+}
+
+enum ContractStatus {
+  draft
+  sent
+  signed
+  cancelled
+}
+
+enum BillingModel {
+  hourly
+  flat_rate
+  hybrid
+}
+
+enum AmendmentStatus {
+  draft
+  sent
+  signed
+  cancelled
+}
+
+enum PaymentStatus {
+  pending
+  succeeded
+  failed
+}
+
+enum ContactType {
+  studio
+  architect
+  contractor
+  other
+}
+
+enum ProjectContactRole {
+  architect
+  contractor
+  vendor
+  other
+}
+
+model User {
+  id             String       @id @default(cuid())
+  name           String?
+  email          String       @unique
+  hashedPassword String?
+  clientId       String? // For client users
+  client         Client?      @relation(fields: [clientId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  tenants        UserTenant[]
+  tasks          Task[]
+  timeEntries    TimeEntry[]
+}
+
+model Tenant {
+  id        String                  @id @default(cuid())
+  name      String
+  slug      String                  @unique
+  logoUrl   String?
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+  theme     TenantTheme?
+  users     UserTenant[]
+  products  Product[] // Tenant-owned products
+  overrides TenantProductOverride[]
+  scrapeJobs ScrapeJob[]
+  clients    Client[]
+  projects   Project[]
+  roomTypes  RoomType[]
+  locations  TenantLocation[]
+  intakeForms IntakeForm[]
+  intakeSubmissions IntakeSubmission[]
+  stepTemplates StepTemplate[]
+  questionTemplates QuestionTemplate[]
+  googleConnection TenantGoogleConnection?
+  meetings Meeting[]
+  spaceElementTemplates SpaceElementTemplate[]
+  projectMessages ProjectMessage[]
+  voiceMessages VoiceMessage[]
+  inspirationImages InspirationImage[]
+  moodBoards MoodBoard[]
+  projectPhases ProjectPhase[]
+  phaseTaskTemplates PhaseTaskTemplate[]
+  tasks Task[]
+  projectMilestones ProjectMilestone[]
+  contractTemplates ContractTemplate[]
+  contracts Contract[]
+  roleRates RoleRate[]
+  timeEntries TimeEntry[]
+  stripeConnection TenantStripeConnection?
+  billingCustomers BillingCustomer[]
+  paymentRecords PaymentRecord[]
+  accountingConfig TenantAccountingConfig?
+  emailTemplates EmailTemplate[]
+  helpArticles HelpArticle[]
+  helpWalkthroughs HelpWalkthrough[]
+  vendorReps TenantVendorRep[]
+  contactOrganizations ContactOrganization[]
+}
+
+model TenantTheme {
+  id             String   @id @default(cuid())
+  tenantId       String   @unique
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  primaryColor   String   @default("#3b82f6")
+  secondaryColor String   @default("#f1f5f9")
+  accentColor    String   @default("#f1f5f9")
+  bgColor        String   @default("#ffffff")
+  textColor      String   @default("#171717")
+  fontFamily     String   @default("sans-serif")
+  borderRadius   String   @default("0.5rem")
+  shadowPreset   String   @default("sm")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model UserTenant {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  role      UserRole @default(assistant)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, tenantId])
+}
+
+model Vendor {
+  id        String                    @id @default(cuid())
+  name      String
+  website   String?
+  createdAt DateTime                  @default(now())
+  updatedAt DateTime                  @updatedAt
+  products  Product[]
+  overrides TenantProductOverride[]
+  locations VendorLocation[]
+  tenantReps TenantVendorRep[]
+}
+
+model VendorLocation {
+  id        String   @id @default(cuid())
+  vendorId  String
+  vendor    Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  name      String?  // e.g., "Downtown Showroom"
+  address   String
+  lat       Float?
+  lng       Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TenantVendorRep {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vendorId  String
+  vendor    Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  repName   String
+  repEmail  String?
+  repPhone  String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ContactOrganization {
+  id        String      @id @default(cuid())
+  tenantId  String
+  tenant    Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  type      ContactType
+  name      String
+  address   String?
+  lat       Float?
+  lng       Float?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  projectLinks ProjectContactLink[]
+}
+
+model ProjectContactLink {
+  id                    String              @id @default(cuid())
+  projectId             String
+  project               Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  contactOrganizationId String
+  contactOrganization   ContactOrganization @relation(fields: [contactOrganizationId], references: [id], onDelete: Cascade)
+  role                  ProjectContactRole
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+}
+
+model ProductCategory {
+  id        String        @id @default(cuid())
+  name      String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  types     ProductType[]
+}
+
+model ProductType {
+  id         String          @id @default(cuid())
+  categoryId String
+  category   ProductCategory @relation(fields: [categoryId], references: [id])
+  name       String
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  products   Product[]
+}
+
+model Product {
+  id            String                  @id @default(cuid())
+  vendorId      String?
+  vendor        Vendor?                 @relation(fields: [vendorId], references: [id])
+  productTypeId String
+  productType   ProductType             @relation(fields: [productTypeId], references: [id])
+  scope         ProductScope            @default(global)
+  ownerTenantId String? // Required if scope='tenant'
+  ownerTenant   Tenant?                 @relation(fields: [ownerTenantId], references: [id])
+  name          String
+  description   String?
+  baseSku       String?
+  status        ProductStatus           @default(active)
+  urlSource     String?
+  urlVendor     String?
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+  variants      ProductVariant[]
+  media         ProductMedia[]
+  overrides     TenantProductOverride[]
+  health        ProductUrlHealth?
+  projectProducts ProjectProduct[]
+}
+
+model ProductVariant {
+  id             String                  @id @default(cuid())
+  productId      String
+  product        Product                 @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name           String
+  variantSku     String?
+  attributesJson Json?
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  media          ProductMedia[]
+  overrides      TenantProductOverride[]
+  projectProducts ProjectProduct[]
+}
+
+model ProductMedia {
+  id        String          @id @default(cuid())
+  productId String
+  product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variantId String?
+  variant   ProductVariant? @relation(fields: [variantId], references: [id])
+  url       String
+  type      MediaType       @default(image)
+  sortOrder Int             @default(0)
+}
+
+model TenantProductOverride {
+  id                String               @id @default(cuid())
+  tenantId          String
+  tenant            Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  productId         String
+  product           Product              @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variantId         String?
+  variant           ProductVariant?      @relation(fields: [variantId], references: [id])
+  costPrice         Decimal?             @db.Decimal(10, 2)
+  sellPrice         Decimal?             @db.Decimal(10, 2)
+  markupPercent     Decimal?             @db.Decimal(10, 2)
+  discountPercent   Decimal?             @db.Decimal(10, 2)
+  internalSku       String?
+  internalNotes     String?
+  preferredVendorId String?
+  preferredVendor   Vendor?              @relation(fields: [preferredVendorId], references: [id])
+  leadTimeOverride  String?
+  availability      OverrideAvailability @default(default)
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  @@unique([tenantId, productId, variantId])
+}
+
+model ScrapeJob {
+  id            String       @id @default(cuid())
+  tenantId      String
+  tenant        Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  url           String
+  mode          ScrapeMode
+  status        ScrapeStatus @default(pending)
+  resultSummary String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model ProductUrlHealth {
+  id             String   @id @default(cuid())
+  productId      String   @unique
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  lastCheckedAt  DateTime @default(now())
+  lastStatusCode Int?
+  isBroken       Boolean  @default(false)
+  notes          String?
+}
+
+model Client {
+  id             String    @id @default(cuid())
+  tenantId       String
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name           String
+  email          String?
+  phone          String?
+  primaryAddress String?
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  projects       Project[]
+  meetings       Meeting[]
+  projectMessages ProjectMessage[]
+  voiceMessages   VoiceMessage[]
+  users           User[]
+  billingCustomer BillingCustomer?
+}
+
+model Project {
+  id                 String        @id @default(cuid())
+  tenantId           String
+  tenant             Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientId           String
+  client             Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  name               String
+  description        String?
+  type               ProjectType   @default(residential)
+  phase              String?
+  status             ProjectStatus @default(prospect)
+  projectAddress     String?
+  projectLat         Float?
+  projectLng         Float?
+  billingAddress     String?
+  propertyMetadataJson Json?
+  mainImageUrl       String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  spaces             Space[]
+  stepStatuses       ProjectStepStatus[]
+  questionResponses  QuestionResponse[]
+  intakeSubmission   IntakeSubmission?
+  meetings           Meeting[]
+  products           ProjectProduct[]
+  projectMessages    ProjectMessage[]
+  voiceMessages      VoiceMessage[]
+  inspiration        ProjectInspiration[]
+  moodBoards         MoodBoard[]
+  tasks              Task[]
+  milestones         ProjectMilestone[]
+  contracts          Contract[]
+  timeEntries        TimeEntry[]
+  paymentRecords     PaymentRecord[]
+  contactLinks       ProjectContactLink[]
+}
+
+model RoomType {
+  id        String   @id @default(cuid())
+  tenantId  String?
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  category  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  spaces    Space[]
+  elementTemplates SpaceElementTemplate[]
+}
+
+model Space {
+  id         String    @id @default(cuid())
+  projectId  String
+  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  roomTypeId String?
+  roomType   RoomType? @relation(fields: [roomTypeId], references: [id])
+  name       String
+  floor      String?
+  notes      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  questionResponses QuestionResponse[]
+  products          ProjectProduct[]
+  inspiration       ProjectInspiration[]
+  tasks             Task[]
+}
+
+model TenantLocation {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  address   String
+  lat       Float?
+  lng       Float?
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model IntakeForm {
+  id          String             @id @default(cuid())
+  tenantId    String
+  tenant      Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  slug        String             @unique
+  configJson  Json
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  submissions IntakeSubmission[]
+}
+
+model IntakeSubmission {
+  id                String     @id @default(cuid())
+  tenantId          String
+  tenant            Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  intakeFormId      String
+  intakeForm        IntakeForm @relation(fields: [intakeFormId], references: [id], onDelete: Cascade)
+  name              String
+  email             String?
+  phone             String?
+  enteredAddress    String?
+  resolvedProjectId String?    @unique
+  resolvedProject   Project?   @relation(fields: [resolvedProjectId], references: [id])
+  rawPayloadJson    Json?
+  createdAt         DateTime   @default(now())
+}
+
+model StepTemplate {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  key         String
+  displayName String
+  order       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ProjectStepStatus {
+  id          String     @id @default(cuid())
+  projectId   String
+  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  stepKey     String
+  status      StepStatus @default(not_started)
+  completedAt DateTime?
+  updatedAt   DateTime   @updatedAt
+  
+  @@unique([projectId, stepKey])
+}
+
+model QuestionTemplate {
+  id          String        @id @default(cuid())
+  tenantId    String
+  tenant      Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  scope       QuestionScope
+  roomTypeId  String? // Nullable for kickoff general questions
+  prompt      String
+  helperText  String?
+  order       Int
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  responses   QuestionResponse[]
+}
+
+model QuestionResponse {
+  id                 String           @id @default(cuid())
+  projectId          String
+  project            Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  spaceId            String?
+  space              Space?           @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  questionTemplateId String
+  questionTemplate   QuestionTemplate @relation(fields: [questionTemplateId], references: [id], onDelete: Cascade)
+  answerText         String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@unique([projectId, spaceId, questionTemplateId])
+}
+
+model TenantGoogleConnection {
+  id           String   @id @default(cuid())
+  tenantId     String   @unique
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  accountEmail String
+  accessToken  String   // In production, encrypt this!
+  refreshToken String?  // In production, encrypt this!
+  expiresAt    DateTime
+  scopes       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Meeting {
+  id                      String      @id @default(cuid())
+  tenantId                String
+  tenant                  Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projectId               String
+  project                 Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  clientId                String
+  client                  Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  type                    MeetingType @default(other)
+  title                   String
+  startDateTime           DateTime
+  endDateTime             DateTime
+  location                String?
+  externalCalendarEventId String?
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  recordings              MeetingRecording[]
+}
+
+model MeetingRecording {
+  id              String   @id @default(cuid())
+  meetingId       String
+  meeting         Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  storageUrl      String
+  transcript      String?  @db.Text
+  summary         String?  @db.Text
+  actionItemsJson Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model SpaceElementTemplate {
+  id         String    @id @default(cuid())
+  tenantId   String
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  roomTypeId String?
+  roomType   RoomType? @relation(fields: [roomTypeId], references: [id])
+  key        String
+  label      String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model ProjectProduct {
+  id              String       @id @default(cuid())
+  projectId       String
+  project         Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  spaceId         String
+  space           Space        @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variantId       String?
+  variant         ProductVariant? @relation(fields: [variantId], references: [id])
+  elementKey      String
+  elementLabel    String
+  quantity        Decimal      @default(1) @db.Decimal(10, 2)
+  unit            String?
+  projectTag      String?      // FT-01, etc.
+  tagConflict     Boolean      @default(false)
+  clientStatus    ClientStatus @default(proposed)
+  visibleToClient Boolean      @default(true)
+  notes           String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+model ProjectMessage {
+  id           String            @id @default(cuid())
+  tenantId     String
+  tenant       Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projectId    String
+  project      Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  clientId     String
+  client       Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  senderType   MessageSenderType
+  senderUserId String? // If studio user
+  body         String
+  createdAt    DateTime          @default(now())
+}
+
+model VoiceMessage {
+  id           String            @id @default(cuid())
+  tenantId     String
+  tenant       Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projectId    String
+  project      Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  clientId     String
+  client       Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  senderType   MessageSenderType
+  senderUserId String?
+  audioUrl     String
+  transcript   String?
+  createdAt    DateTime          @default(now())
+}
+
+model InspirationImage {
+  id               String               @id @default(cuid())
+  tenantId         String
+  tenant           Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  url              String
+  uploadedByUserId String?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  projectLinks     ProjectInspiration[]
+}
+
+model ProjectInspiration {
+  id                 String           @id @default(cuid())
+  projectId          String
+  project            Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  spaceId            String?
+  space              Space?           @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  inspirationImageId String
+  inspirationImage   InspirationImage @relation(fields: [inspirationImageId], references: [id], onDelete: Cascade)
+  uploadedByClientId String?
+  uploadedByUserId   String?
+  clientVisible      Boolean          @default(false)
+  notes              String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+}
+
+model MoodBoard {
+  id            String   @id @default(cuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name          String
+  description   String?
+  imageUrl      String? // Generated composite image or thumbnail
+  clientVisible Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model ProjectPhase {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  sortOrder Int
+  taskTemplates PhaseTaskTemplate[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PhaseTaskTemplate {
+  id              String       @id @default(cuid())
+  tenantId        String
+  tenant          Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  phaseId         String
+  phase           ProjectPhase @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  title           String
+  description     String?
+  relativeDueDays Int?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+model Task {
+  id             String     @id @default(cuid())
+  tenantId       String
+  tenant         Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projectId      String
+  project        Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  spaceId        String?
+  space          Space?     @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  title          String
+  description    String?
+  status         TaskStatus @default(todo)
+  dueDate        DateTime?
+  assigneeUserId String?
+  assigneeUser   User?      @relation(fields: [assigneeUserId], references: [id])
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+model ProjectMilestone {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name        String
+  targetDate  DateTime?
+  amount      Decimal? @db.Decimal(10, 2)
+  autoCharge  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  paymentRecords PaymentRecord[]
+}
+
+model ContractTemplate {
+  id        String       @id @default(cuid())
+  tenantId  String
+  tenant    Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  type      ContractType
+  body      String       @db.Text
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model Contract {
+  id                 String       @id @default(cuid())
+  tenantId           String
+  tenant             Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projectId          String
+  project            Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  templateId         String?
+  title              String
+  status             ContractStatus @default(draft)
+  billingModel       BillingModel @default(hourly)
+  baseHoursAllocated Decimal?     @db.Decimal(10, 2)
+  baseFlatAmount     Decimal?     @db.Decimal(10, 2)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  amendments         Amendment[]
+  timeEntries        TimeEntry[]
+  paymentRecords     PaymentRecord[]
+}
+
+model Amendment {
+  id                  String          @id @default(cuid())
+  contractId          String
+  contract            Contract        @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  title               String
+  description         String?
+  extraHoursAllocated Decimal?        @db.Decimal(10, 2)
+  extraFlatAmount     Decimal?        @db.Decimal(10, 2)
+  status              AmendmentStatus @default(draft)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  timeEntries         TimeEntry[]
+  paymentRecords      PaymentRecord[]
+}
+
+model RoleRate {
+  id         String   @id @default(cuid())
+  tenantId   String
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  roleName   String
+  hourlyRate Decimal  @db.Decimal(10, 2)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model TimeEntry {
+  id          String     @id @default(cuid())
+  tenantId    String
+  tenant      Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projectId   String
+  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  contractId  String?
+  contract    Contract?  @relation(fields: [contractId], references: [id])
+  amendmentId String?
+  amendment   Amendment? @relation(fields: [amendmentId], references: [id])
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleName    String
+  date        DateTime
+  hours       Decimal    @db.Decimal(10, 2)
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model TenantStripeConnection {
+  id           String   @id @default(cuid())
+  tenantId     String   @unique
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  stripeUserId String
+  accessToken  String   // Encrypted in production
+  refreshToken String?
+  scope        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model BillingCustomer {
+  id                 String   @id @default(cuid())
+  tenantId           String
+  tenant             Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientId           String   @unique
+  client             Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  provider           String   @default("stripe")
+  externalCustomerId String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model PaymentRecord {
+  id                String            @id @default(cuid())
+  tenantId          String
+  tenant            Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projectId         String
+  project           Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestoneId       String?
+  milestone         ProjectMilestone? @relation(fields: [milestoneId], references: [id])
+  contractId        String?
+  contract          Contract?         @relation(fields: [contractId], references: [id])
+  amendmentId       String?
+  amendment         Amendment?        @relation(fields: [amendmentId], references: [id])
+  provider          String            @default("stripe")
+  externalPaymentId String?
+  amount            Decimal           @db.Decimal(10, 2)
+  currency          String            @default("usd")
+  status            PaymentStatus     @default(pending)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+model TenantAccountingConfig {
+  id           String   @id @default(cuid())
+  tenantId     String   @unique
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  provider     String   @default("quickbooks")
+  realmId      String?
+  accessToken  String   // Encrypted in production
+  refreshToken String?
+  expiresAt    DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model EmailTemplate {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  key       String   // e.g., 'welcome_client', 'contract_sent', 'milestone_due'
+  name      String
+  subject   String
+  htmlBody  String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, key])
+}
+
+model HelpArticle {
+  id        String   @id @default(cuid())
+  tenantId  String?  // Null if global article
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  slug      String   @unique
+  title     String
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model HelpWalkthrough {
+  id        String   @id @default(cuid())
+  tenantId  String?
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  key       String   @unique
+  title     String
+  stepsJson Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
