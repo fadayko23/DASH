@@ -26,14 +26,30 @@ export async function getCurrentTenant() {
     slug = tenantSlugHeader
   }
 
+  // 3. Fallback to DEMO_TENANT_SLUG env var if set (for single-tenant / demo mode)
+  if (!slug && process.env.DEMO_TENANT_SLUG) {
+    slug = process.env.DEMO_TENANT_SLUG
+  }
+
+  // 4. If we resolved a slug but it didn't match anything in DB, maybe fallback to demo?
+  // For now, let's try to find it.
+
   if (!slug) return null
 
-  const tenant = await prisma.tenant.findUnique({
+  let tenant = await prisma.tenant.findUnique({
     where: { slug },
     include: {
       theme: true
     }
   })
+
+  // Fallback: if resolved slug (e.g. 'dash-gules-eight') wasn't found, try the demo slug
+  if (!tenant && process.env.DEMO_TENANT_SLUG && slug !== process.env.DEMO_TENANT_SLUG) {
+      tenant = await prisma.tenant.findUnique({
+          where: { slug: process.env.DEMO_TENANT_SLUG },
+          include: { theme: true }
+      })
+  }
 
   return tenant
 }
