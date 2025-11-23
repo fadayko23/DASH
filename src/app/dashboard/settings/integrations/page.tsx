@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export default async function IntegrationsPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const session = await auth();
   if (!session?.user?.email) redirect("/login");
