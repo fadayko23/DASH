@@ -9,6 +9,7 @@ type Theme = {
     accentColor: string
     bgColor: string
     textColor: string
+    fontFamily: string
     borderRadius: string
 }
 
@@ -120,6 +121,22 @@ export default function ThemeForm({ initialTheme }: { initialTheme: Theme }) {
                             className="flex-1 rounded-md border border-input bg-transparent px-3 py-2 text-sm" 
                         />
                     </div>
+                </div>
+
+                {/* Font Family */}
+                <div>
+                    <label htmlFor="fontFamily" className="block text-sm font-medium mb-1">Font Family</label>
+                    <select 
+                        name="fontFamily" 
+                        value={theme.fontFamily} 
+                        onChange={e => handleChange('fontFamily', e.target.value)}
+                        className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                    >
+                        <option value="Montserrat">Montserrat</option>
+                        <option value="sans-serif">System Sans</option>
+                        <option value="serif">Serif</option>
+                        <option value="mono">Monospace</option>
+                    </select>
                 </div>
 
                 {/* Border Radius */}

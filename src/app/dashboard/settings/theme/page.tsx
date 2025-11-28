@@ -13,6 +13,7 @@ export default async function ThemeSettingsPage() {
       accentColor: "#f1f5f9",
       bgColor: "#ffffff",
       textColor: "#171717",
+      fontFamily: "Montserrat",
       borderRadius: "0.5rem"
   }
 
@@ -23,6 +24,7 @@ export default async function ThemeSettingsPage() {
       accentColor: theme.accentColor,
       bgColor: theme.bgColor,
       textColor: theme.textColor,
+      fontFamily: theme.fontFamily || "Montserrat",
       borderRadius: theme.borderRadius,
   }
 

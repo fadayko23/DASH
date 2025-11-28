@@ -47,6 +47,7 @@ export async function updateTheme(formData: FormData) {
         const accentColor = formData.get("accentColor") as string
         const bgColor = formData.get("bgColor") as string
         const textColor = formData.get("textColor") as string
+        const fontFamily = formData.get("fontFamily") as string || "Montserrat"
         const borderRadius = formData.get("borderRadius") as string
         
         await prisma.tenantTheme.upsert({
@@ -58,6 +59,7 @@ export async function updateTheme(formData: FormData) {
                 accentColor,
                 bgColor,
                 textColor,
+                fontFamily,
                 borderRadius,
             },
             update: {
@@ -66,6 +68,7 @@ export async function updateTheme(formData: FormData) {
                 accentColor,
                 bgColor,
                 textColor,
+                fontFamily,
                 borderRadius,
             }
         })

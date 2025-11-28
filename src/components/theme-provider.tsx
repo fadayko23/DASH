@@ -15,26 +15,44 @@ type Theme = {
 
 export function ThemeProvider({ theme }: { theme: Theme | null }) {
   useEffect(() => {
-    if (!theme) return
-
     const root = document.documentElement
+    
+    // Default theme values
+    const defaultTheme = {
+      primaryColor: "#3b82f6",
+      secondaryColor: "#f1f5f9",
+      accentColor: "#f1f5f9",
+      bgColor: "#ffffff",
+      textColor: "#171717",
+      fontFamily: "Montserrat",
+      borderRadius: "0.5rem"
+    }
 
-    root.style.setProperty('--primary', theme.primaryColor)
-    root.style.setProperty('--secondary', theme.secondaryColor)
-    root.style.setProperty('--accent', theme.accentColor)
-    root.style.setProperty('--background', theme.bgColor)
-    root.style.setProperty('--foreground', theme.textColor)
+    const activeTheme = theme || defaultTheme
+
+    root.style.setProperty('--primary', activeTheme.primaryColor)
+    root.style.setProperty('--secondary', activeTheme.secondaryColor)
+    root.style.setProperty('--accent', activeTheme.accentColor)
+    root.style.setProperty('--background', activeTheme.bgColor)
+    root.style.setProperty('--foreground', activeTheme.textColor)
     
     const getFontFamily = (font: string) => {
-        if (!font) return 'inherit'
+        if (!font || font === 'Montserrat' || font === 'montserrat') {
+          return 'var(--font-montserrat), system-ui, sans-serif'
+        }
         if (font === 'serif') return 'serif'
         if (font === 'mono') return 'monospace'
-        if (font === 'sans') return 'sans-serif'
-        return `"${font}", sans-serif`
+        if (font === 'sans' || font === 'sans-serif') {
+          return 'var(--font-montserrat), system-ui, sans-serif'
+        }
+        return `"${font}", var(--font-montserrat), system-ui, sans-serif`
     }
-    root.style.setProperty('--font-sans', getFontFamily(theme.fontFamily))
     
-    root.style.setProperty('--radius', theme.borderRadius)
+    const fontFamily = getFontFamily(activeTheme.fontFamily)
+    root.style.setProperty('--font-sans', fontFamily)
+    document.body.style.fontFamily = fontFamily
+    
+    root.style.setProperty('--radius', activeTheme.borderRadius)
     
   }, [theme])
 

@@ -7,9 +7,23 @@ import { AppSidebar } from '@/components/app-sidebar'
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const tenant = await getCurrentTenant()
 
+  // Default theme with Montserrat font
+  const defaultTheme = {
+    primaryColor: "#3b82f6",
+    secondaryColor: "#f1f5f9",
+    accentColor: "#f1f5f9",
+    bgColor: "#ffffff",
+    textColor: "#171717",
+    fontFamily: "Montserrat",
+    borderRadius: "0.5rem",
+    shadowPreset: "sm"
+  }
+
+  const theme = tenant?.theme || defaultTheme
+
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
-        {tenant?.theme && <ThemeProvider theme={tenant.theme} />}
+        <ThemeProvider theme={theme} />
         <WalkthroughOverlay />
         
         {/* Sidebar */}
