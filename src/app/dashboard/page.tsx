@@ -9,53 +9,54 @@ export default async function DashboardPage() {
   const tenant = await getCurrentTenant()
 
   return (
-    <div className="min-h-full p-8 md:p-12 max-w-7xl mx-auto space-y-12">
+    <div className="min-h-full p-8 md:p-10 max-w-7xl mx-auto space-y-10">
       
       {/* Hero Header */}
-      <div className="text-center space-y-4 py-8">
-        <div className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">Welcome To</div>
-        <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-foreground">
+      <div className="space-y-3 py-6">
+        <div className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Welcome To</div>
+        <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-foreground">
           {tenant?.name || 'DASH'}<span className="text-primary">.</span>
         </h1>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content Column */}
-        <div className="lg:col-span-2 space-y-12">
+        <div className="lg:col-span-2 space-y-10">
           
           {/* Overview Section */}
           <section>
-             <div className="flex items-center gap-4 mb-6">
-                <div className="h-16 w-16 bg-foreground text-background flex items-center justify-center text-2xl font-bold rounded-sm">
+             <div className="flex items-center gap-3 mb-5">
+                <div className="h-12 w-12 bg-primary/10 text-primary flex items-center justify-center text-lg font-semibold rounded-md">
                     {tenant?.name?.substring(0, 2) || 'JL'}
                 </div>
-                <h2 className="text-3xl font-bold">Overview</h2>
+                <h2 className="text-2xl font-semibold text-foreground">Overview</h2>
              </div>
-             <p className="text-lg text-muted-foreground leading-relaxed">
+             <p className="text-base text-muted-foreground leading-relaxed">
                 An all-in-one project management and design dashboard. 
-                <span className="font-semibold text-foreground"> {tenant?.name || 'DASH'} </span>
+                <span className="font-medium text-foreground"> {tenant?.name || 'DASH'} </span>
                 provides seamless access to every phase of your project—whether you're managing clients, tracking tasks, or finalizing selections for interiors and exteriors. 
                 From finishes and fixtures to furnishings and on-the-go resources, this hub allows for organized, intuitive project oversight.
              </p>
           </section>
 
           {/* Projects Section */}
-          <section className="space-y-6">
-              <h3 className="text-xl font-bold">Projects</h3>
-              <p className="text-muted-foreground">Effortlessly explore the different stages of your ongoing and past projects.</p>
+          <section className="space-y-5">
+              <div>
+                <h3 className="text-lg font-semibold text-foreground mb-1">Projects</h3>
+                <p className="text-sm text-muted-foreground">Effortlessly explore the different stages of your ongoing and past projects.</p>
+              </div>
               
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <DataCard 
                     title="All Projects" 
                     subtext="Dive into all the projects that are full steam ahead. Stay on top of everything that's in motion."
                     href="/dashboard/projects"
                     icon={<FaProjectDiagram />}
-                    className="bg-card hover:bg-accent/50"
                   />
                   <DataCard 
                     title="Project Hours" 
                     subtext="View hours utilized and stay up to date with project hours."
-                    href="/dashboard/projects" // Ideally links to specific hours view
+                    href="/dashboard/projects"
                     icon={<FaClock />}
                   />
                   <DataCard 
@@ -74,9 +75,11 @@ export default async function DashboardPage() {
           </section>
           
           {/* Clients Section */}
-          <section className="space-y-6">
-              <h3 className="text-xl font-bold">Clients</h3>
-              <p className="text-muted-foreground">Seamlessly access information about your current and former clients.</p>
+          <section className="space-y-5">
+              <div>
+                <h3 className="text-lg font-semibold text-foreground mb-1">Clients</h3>
+                <p className="text-sm text-muted-foreground">Seamlessly access information about your current and former clients.</p>
+              </div>
               <DataCard 
                 title="All Clients" 
                 subtext="Stay connected with clients who are currently or have been on their design journey."
@@ -88,56 +91,56 @@ export default async function DashboardPage() {
         </div>
 
         {/* Right Sidebar Column */}
-        <aside className="space-y-10">
+        <aside className="space-y-6">
             
             {/* About Section */}
-            <div className="bg-card p-8 rounded-xl border shadow-sm space-y-6">
-                <h3 className="text-xl font-bold">About {tenant?.name || 'Designer'}</h3>
-                <p className="text-sm text-muted-foreground">
+            <div className="bg-white p-6 rounded-md border border-[#E8E8E8] space-y-5">
+                <h3 className="text-lg font-semibold text-foreground">About {tenant?.name || 'Designer'}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
                     {tenant?.name || 'JL Coates Interior Design Studio'} is an award-winning design studio.
                 </p>
                 
-                <div className="space-y-3 pt-2">
-                    <a href="#" className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors">
+                <div className="space-y-2.5 pt-1">
+                    <a href="#" className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors">
                         <FaExternalLinkAlt className="text-xs" /> {tenant?.name || 'Designer'} Website
                     </a>
-                    <a href="#" className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors">
+                    <a href="#" className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors">
                         <FaExternalLinkAlt className="text-xs" /> Interior Design Style Quiz
                     </a>
-                    <a href="#" className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors">
+                    <a href="#" className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors">
                         <FaExternalLinkAlt className="text-xs" /> Style Quiz Results
                     </a>
                 </div>
             </div>
 
             {/* Schedule Section */}
-            <div className="bg-card p-8 rounded-xl border shadow-sm space-y-6">
-                <h3 className="text-xl font-bold">Schedule</h3>
-                <p className="text-sm text-muted-foreground">
+            <div className="bg-white p-6 rounded-md border border-[#E8E8E8] space-y-5">
+                <h3 className="text-lg font-semibold text-foreground">Schedule</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
                     Plan your next step with {tenant?.name || 'us'}.
                 </p>
                 
-                <div className="space-y-4 pt-2">
-                    <Link href="/dashboard/meetings/book" className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors">
-                        <FaCalendarCheck /> Schedule Discover Call
+                <div className="space-y-2.5 pt-1">
+                    <Link href="/dashboard/meetings/book" className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors">
+                        <FaCalendarCheck className="text-xs" /> Schedule Discover Call
                     </Link>
-                    <Link href="/dashboard/meetings/book" className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors">
-                        <FaCalendarCheck /> Schedule Site Visit
+                    <Link href="/dashboard/meetings/book" className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors">
+                        <FaCalendarCheck className="text-xs" /> Schedule Site Visit
                     </Link>
-                    <Link href="/dashboard/meetings/book" className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors">
-                        <FaCalendarCheck /> Schedule Kick-Off
+                    <Link href="/dashboard/meetings/book" className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors">
+                        <FaCalendarCheck className="text-xs" /> Schedule Kick-Off
                     </Link>
                 </div>
             </div>
             
              {/* Designer In Mind Section */}
-             <div className="bg-card p-8 rounded-xl border shadow-sm space-y-6">
-                <h3 className="text-xl font-bold">About Designer In Mind</h3>
-                <p className="text-sm text-muted-foreground">
+             <div className="bg-white p-6 rounded-md border border-[#E8E8E8] space-y-5">
+                <h3 className="text-lg font-semibold text-foreground">About Designer In Mind</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
                     Designer In Mind is a platform tailored specifically for the Interior Design Studio.
                 </p>
-                <div className="space-y-3 pt-2">
-                    <a href="#" className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors">
+                <div className="space-y-2.5 pt-1">
+                    <a href="#" className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors">
                         <FaExternalLinkAlt className="text-xs" /> Designer In Mind Website
                     </a>
                 </div>

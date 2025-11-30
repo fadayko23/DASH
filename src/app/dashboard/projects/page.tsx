@@ -18,46 +18,46 @@ export default function ProjectsPage() {
   })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-8 md:p-10">
         <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Projects</h1>
             <button 
                 onClick={() => setIsModalOpen(true)}
-                className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 text-sm font-medium"
+                className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 text-sm font-medium transition-colors"
             >
                 <FaPlus /> Add Project
             </button>
         </div>
 
-         <div className="rounded-md border">
-             <table className="w-full text-sm text-left">
-                <thead className="bg-muted/50 text-muted-foreground">
+         <div className="rounded-md border border-[#E8E8E8] bg-white overflow-hidden">
+             <table className="w-full text-sm">
+                <thead className="bg-[#FAFAFA] border-b border-[#E8E8E8]">
                     <tr>
-                        <th className="p-4 font-medium">Project Name</th>
-                        <th className="p-4 font-medium">Client</th>
-                        <th className="p-4 font-medium">Type</th>
-                        <th className="p-4 font-medium">Status</th>
-                        <th className="p-4 font-medium">Address</th>
-                        <th className="p-4 font-medium"></th>
+                        <th className="p-4 font-semibold text-foreground text-left">Project Name</th>
+                        <th className="p-4 font-semibold text-foreground text-left">Client</th>
+                        <th className="p-4 font-semibold text-foreground text-left">Type</th>
+                        <th className="p-4 font-semibold text-foreground text-left">Status</th>
+                        <th className="p-4 font-semibold text-foreground text-left">Address</th>
+                        <th className="p-4 font-semibold text-foreground text-right"></th>
                     </tr>
                 </thead>
                  <tbody>
                     {projects?.map((project: { id: string; name: string; client?: { name: string }; type: string; status: string; projectAddress?: string }) => (
-                         <tr key={project.id} className="border-t hover:bg-muted/50">
-                             <td className="p-4 font-medium">{project.name}</td>
-                             <td className="p-4">{project.client?.name || '-'}</td>
-                             <td className="p-4 capitalize">{project.type}</td>
-                             <td className="p-4 capitalize">{project.status.replace('_', ' ')}</td>
-                             <td className="p-4 truncate max-w-xs">{project.projectAddress || '-'}</td>
+                         <tr key={project.id} className="border-b border-[#E8E8E8] last:border-b-0 hover:bg-[#FAFAFA] transition-colors">
+                             <td className="p-4 font-medium text-foreground">{project.name}</td>
+                             <td className="p-4 text-muted-foreground">{project.client?.name || '-'}</td>
+                             <td className="p-4 text-muted-foreground capitalize">{project.type}</td>
+                             <td className="p-4 text-muted-foreground capitalize">{project.status.replace('_', ' ')}</td>
+                             <td className="p-4 text-muted-foreground truncate max-w-xs">{project.projectAddress || '-'}</td>
                              <td className="p-4 text-right">
-                                <Link href={`/dashboard/projects/${project.id}`} className="text-primary hover:underline">
+                                <Link href={`/dashboard/projects/${project.id}`} className="text-primary hover:text-primary/80 font-medium transition-colors">
                                     Open
                                 </Link>
                             </td>
                          </tr>
                     ))}
                     {projects?.length === 0 && (
-                         <tr><td colSpan={6} className="p-4 text-center text-muted-foreground">No projects found.</td></tr>
+                         <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">No projects found.</td></tr>
                     )}
                  </tbody>
             </table>
@@ -95,20 +95,20 @@ function ProjectForm({ clients, onClose, onSuccess }: { clients: { id: string; n
     }
 
     return (
-        <div className="bg-card text-card-foreground p-6 rounded-lg w-full max-w-md border shadow-lg max-h-[90vh] overflow-auto">
-            <h2 className="text-xl font-bold mb-4">New Project</h2>
+        <div className="bg-white text-foreground p-6 rounded-md w-full max-w-md border border-[#E8E8E8] shadow-lg max-h-[90vh] overflow-auto">
+            <h2 className="text-lg font-semibold mb-5 text-foreground">New Project</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label className="block text-sm font-medium mb-1">
+                    <label className="block text-sm font-semibold mb-1.5 text-foreground">
                         {meta.name.label}
-                        <span className="text-xs text-muted-foreground block font-normal">{meta.name.description}</span>
+                        <span className="text-xs text-muted-foreground block font-normal mt-0.5">{meta.name.description}</span>
                     </label>
-                    <input name="name" placeholder={meta.name.placeholder} required className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm" />
+                    <input name="name" placeholder={meta.name.placeholder} required className="w-full rounded-md border border-[#E8E8E8] bg-white px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
                 </div>
                 
                 <div>
-                    <label className="block text-sm font-medium mb-1">Who is the client?</label>
-                    <select name="clientId" required className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm">
+                    <label className="block text-sm font-semibold mb-1.5 text-foreground">Who is the client?</label>
+                    <select name="clientId" required className="w-full rounded-md border border-[#E8E8E8] bg-white px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                         <option value="">Select Client</option>
                         {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
@@ -116,19 +116,19 @@ function ProjectForm({ clients, onClose, onSuccess }: { clients: { id: string; n
 
                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1 flex items-center gap-1">
+                        <label className="block text-sm font-semibold mb-1.5 flex items-center gap-1 text-foreground">
                             Type
                             <span className="text-muted-foreground" title={meta.type.description}><FaQuestionCircle size={10} /></span>
                         </label>
-                        <select name="type" className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm">
+                        <select name="type" className="w-full rounded-md border border-[#E8E8E8] bg-white px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                             <option value="residential">Residential</option>
                             <option value="commercial">Commercial</option>
                             <option value="other">Other</option>
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-1">Status</label>
-                        <select name="status" className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm">
+                        <label className="block text-sm font-semibold mb-1.5 text-foreground">Status</label>
+                        <select name="status" className="w-full rounded-md border border-[#E8E8E8] bg-white px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                             <option value="prospect">Prospect</option>
                             <option value="active">Active</option>
                             <option value="on_hold">On Hold</option>
@@ -138,24 +138,24 @@ function ProjectForm({ clients, onClose, onSuccess }: { clients: { id: string; n
                 </div>
 
                 <div>
-                     <label className="block text-sm font-medium mb-1">
+                     <label className="block text-sm font-semibold mb-1.5 text-foreground">
                         {meta.address.label}
-                        <span className="text-xs text-muted-foreground block font-normal">{meta.address.description}</span>
+                        <span className="text-xs text-muted-foreground block font-normal mt-0.5">{meta.address.description}</span>
                     </label>
-                    <input name="projectAddress" placeholder="e.g. 123 Main St, New York, NY" className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm" />
+                    <input name="projectAddress" placeholder="e.g. 123 Main St, New York, NY" className="w-full rounded-md border border-[#E8E8E8] bg-white px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1">
+                    <label className="block text-sm font-semibold mb-1.5 text-foreground">
                         {meta.description.label}
-                        <span className="text-xs text-muted-foreground block font-normal">{meta.description.description}</span>
+                        <span className="text-xs text-muted-foreground block font-normal mt-0.5">{meta.description.description}</span>
                     </label>
-                    <textarea name="description" placeholder={meta.description.placeholder} className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm" rows={3} />
+                    <textarea name="description" placeholder={meta.description.placeholder} className="w-full rounded-md border border-[#E8E8E8] bg-white px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" rows={3} />
                 </div>
 
-                <div className="flex justify-end gap-2 mt-6">
-                    <button type="button" onClick={onClose} className="px-4 py-2 text-sm hover:bg-muted rounded-md">Cancel</button>
-                    <button type="submit" disabled={isLoading} className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90">{isLoading ? 'Creating...' : 'Create Project'}</button>
+                <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-[#E8E8E8]">
+                    <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-[#F7F7F7] rounded-md transition-colors">Cancel</button>
+                    <button type="submit" disabled={isLoading} className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 text-sm font-medium transition-colors">{isLoading ? 'Creating...' : 'Create Project'}</button>
                 </div>
             </form>
         </div>

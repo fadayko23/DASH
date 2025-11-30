@@ -22,7 +22,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const theme = tenant?.theme || defaultTheme
 
   return (
-    <div className="flex h-screen bg-background text-foreground overflow-hidden">
+    <div className="flex h-screen bg-[#FAFAFA] text-foreground overflow-hidden">
         <ThemeProvider theme={theme} />
         <WalkthroughOverlay />
         
@@ -30,7 +30,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <AppSidebar tenantName={tenant?.name || 'DASH'} />
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto bg-muted/10 relative">
+        <main className="flex-1 overflow-auto bg-[#FAFAFA] relative">
             {children}
         </main>
     </div>

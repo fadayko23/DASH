@@ -13,19 +13,19 @@ export function AppSidebar({ tenantName }: { tenantName: string }) {
   const pathname = usePathname()
   
   return (
-    <aside className="w-64 bg-[#1a1a1a] text-white flex flex-col h-screen border-r border-white/10 flex-shrink-0">
+    <aside className="w-64 bg-white border-r border-[#E8E8E8] flex flex-col h-screen flex-shrink-0">
       {/* Header */}
-      <div className="p-6 flex items-center gap-3">
-         <div className="h-8 w-8 bg-white/10 rounded flex items-center justify-center">
-             <FaBuilding />
+      <div className="p-5 flex items-center gap-3 border-b border-[#E8E8E8]">
+         <div className="h-9 w-9 bg-primary/10 rounded-md flex items-center justify-center text-primary">
+             <FaBuilding className="text-sm" />
          </div>
-         <h1 className="text-xl font-bold tracking-tight text-white">
+         <h1 className="text-base font-semibold tracking-tight text-foreground">
              {tenantName || 'JL Coates'}
          </h1>
       </div>
 
       {/* Scrollable Nav */}
-      <div className="flex-1 overflow-y-auto px-4 py-2 space-y-8 scrollbar-thin scrollbar-thumb-white/10">
+      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
         
         {/* Main Section */}
         <NavSection title="DASH.">
@@ -68,14 +68,14 @@ export function AppSidebar({ tenantName }: { tenantName: string }) {
       </div>
 
       {/* Footer / Profile */}
-      <div className="p-4 border-t border-white/10 bg-white/5">
+      <div className="p-4 border-t border-[#E8E8E8] bg-[#FAFAFA]">
           <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-xs font-bold">
+              <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center text-xs font-semibold text-white">
                   U
               </div>
               <div className="flex-1 overflow-hidden">
-                  <div className="text-sm font-medium truncate">User Profile</div>
-                  <div className="text-xs text-gray-400 truncate">user@example.com</div>
+                  <div className="text-sm font-medium truncate text-foreground">User Profile</div>
+                  <div className="text-xs text-muted-foreground truncate">user@example.com</div>
               </div>
           </div>
       </div>
@@ -86,7 +86,7 @@ export function AppSidebar({ tenantName }: { tenantName: string }) {
 function NavSection({ title, children }: { title: string, children: React.ReactNode }) {
     return (
         <div className="space-y-1">
-            <h3 className="px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{title}</h3>
+            <h3 className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{title}</h3>
             <div className="space-y-0.5">
                 {children}
             </div>
@@ -99,14 +99,17 @@ function NavItem({ href, icon, label, active = false }: { href: string, icon: Re
         <Link 
             href={href} 
             className={`
-                group flex items-center gap-3 px-2 py-1.5 text-sm font-medium rounded-md transition-colors
-                ${active ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'}
+                group flex items-center gap-3 px-2.5 py-2 text-sm font-medium rounded-md transition-all duration-150
+                ${active 
+                    ? 'bg-primary/10 text-primary font-semibold' 
+                    : 'text-muted-foreground hover:bg-[#F7F7F7] hover:text-foreground'
+                }
             `}
         >
-            <span className={`${active ? 'text-white' : 'text-gray-500 group-hover:text-white'}`}>
+            <span className={`text-sm ${active ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'}`}>
                 {icon}
             </span>
-            {label}
+            <span>{label}</span>
         </Link>
     )
 }
