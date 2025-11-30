@@ -13,21 +13,27 @@ interface DataCardProps {
 
 export function DataCard({ title, value, subtext, href, icon, className = '' }: DataCardProps) {
   const Content = () => (
-    <div className={`group relative flex flex-col justify-between space-y-2 rounded-xl border bg-card p-6 shadow-sm transition-all hover:shadow-md hover:border-primary/50 ${className}`}>
-      <div className="flex flex-row items-center justify-between space-y-0">
-        <h3 className="tracking-tight text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">{title}</h3>
-        {icon && <div className="text-muted-foreground group-hover:text-primary transition-colors">{icon}</div>}
+    <div className={`group relative flex flex-col justify-between space-y-3 rounded-md border border-[#E8E8E8] bg-white p-5 transition-all duration-150 hover:border-[#D0D0D0] hover:shadow-sm ${className}`}>
+      <div className="flex flex-row items-start justify-between">
+        <div className="flex-1">
+          <h3 className="text-sm font-semibold text-foreground mb-1">{title}</h3>
+          {subtext && <p className="text-xs text-muted-foreground leading-relaxed">{subtext}</p>}
+        </div>
+        {icon && (
+          <div className="ml-3 text-muted-foreground group-hover:text-primary transition-colors">
+            {icon}
+          </div>
+        )}
       </div>
-      {(value || subtext) && (
-        <div>
-            {value && <div className="text-2xl font-bold">{value}</div>}
-            {subtext && <p className="text-xs text-muted-foreground">{subtext}</p>}
+      {value && (
+        <div className="pt-2">
+          <div className="text-2xl font-semibold text-foreground">{value}</div>
         </div>
       )}
       {href && (
-          <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-              <FaArrowRight className="text-primary h-4 w-4" />
-          </div>
+        <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+          <FaArrowRight className="text-primary h-3.5 w-3.5" />
+        </div>
       )}
     </div>
   )
